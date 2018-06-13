@@ -1,0 +1,17 @@
+body, html {
+	overflow:hidden;
+}
+
+.codeInput {
+	font-family: monospace;
+	white-space:pre;
+}
+
+.ton {
+	margin: 5px;
+	font-family: monospace;
+}
+
+.marg {
+	margin: 0 10px 0 10px;
+}
