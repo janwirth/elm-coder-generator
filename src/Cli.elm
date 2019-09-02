@@ -3,9 +3,9 @@ import Platform
 import Types
 import Generate
 
-type alias Flags = SourceCodes
+type alias Flags = SourceCode
 
-type alias SourceCodes = List String
+type alias SourceCode = String
 
 type alias Model = {}
 
@@ -18,10 +18,10 @@ main = Platform.worker {
   , subscriptions = always Sub.none
   }
 
-run : SourceCodes -> (Model, Cmd Msg)
+run : SourceCode -> (Model, Cmd Msg)
 run sourceCodes =
   let
-    coders = Generate.bothWithImports Types.Extra sourceCodes
+    coders = Generate.both Types.Extra sourceCodes
   in
     ({}, done coders)
 

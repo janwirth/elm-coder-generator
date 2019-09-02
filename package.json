@@ -1,0 +1,25 @@
+{
+  "name": "decgen",
+  "version": "0.0.1",
+  "description": "Builds JSON decoders and encoders for your Elm types.",
+  "main": "cli.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dkodaj/decgen.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dkodaj/decgen/issues"
+  },
+  "homepage": "https://github.com/dkodaj/decgen#readme",
+  "devDependencies": {
+    "mock-fs": "^4.10.1"
+  }
+}

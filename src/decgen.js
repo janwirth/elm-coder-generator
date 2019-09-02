@@ -39,3 +39,5 @@ function run (moduleList) {
   const process = generate({flags})
   process.ports.done.subscribe(x => console.log(x))
 }
+
+module.exports = run
