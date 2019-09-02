@@ -14,9 +14,9 @@ type alias Fruit = Apple Count | Banana Count
 type alias Number = Int
 type alias Foo = Bar Number | Baz
 
---| decgen-generated-start
+--|| decgen-generated-start
 THIS SHOULD BE REPLACED
---| decgen-generated-end
+--|| decgen-generated-end
 
 --| decgen-end
 `
