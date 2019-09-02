@@ -108,9 +108,12 @@ encoderHelp topLevel rawName a =
             case String.split "." importedTypeReference |> List.reverse of
                 typeName :: reversedPath ->
                     let
-                        path = String.join "." (List.reverse reversedPath)
+                        path =
+                            case reversedPath of
+                                [] -> ""
+                                _ -> String.join "." (List.reverse reversedPath) ++ "."
                     in
-                    path ++ ".encode" ++ typeName ++ " a"
+                    path ++ "encode" ++ typeName ++ " a"
                 _ ->
                     "encode" ++ name ++ " a ="
 

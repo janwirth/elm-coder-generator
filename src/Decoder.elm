@@ -100,9 +100,12 @@ decoderHelp topLevel rawName a extra =
             case String.split "." importedTypeReference |> List.reverse of
                 typeName :: reversedPath ->
                     let
-                        path = String.join "." (List.reverse reversedPath)
+                        path =
+                            case reversedPath of
+                                [] -> ""
+                                _ -> String.join "." (List.reverse reversedPath) ++ "."
                     in
-                    path ++ ".decode" ++ typeName
+                    path ++ "decode" ++ typeName
                 _ ->
                     "decode" ++ name
 
