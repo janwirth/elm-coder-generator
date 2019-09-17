@@ -113,7 +113,7 @@ encoderHelp topLevel rawName a =
                                 [] -> ""
                                 _ -> String.join "." (List.reverse reversedPath) ++ "."
                     in
-                    path ++ "encode" ++ typeName ++ " a"
+                    path ++ "encode" ++ typeName ++ (if topLevel then " a" else "")
                 _ ->
                     "encode" ++ name ++ " a ="
 

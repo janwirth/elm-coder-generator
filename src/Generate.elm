@@ -77,6 +77,22 @@ encodersWithImports sources =
     -->         |> String.replace "                    " "" -- adjust to formatting
     -->         |> String.replace "                   " "" -- adjust to formatting
 
+    both Pipeline "type alias Record = {a : Int, b : ImportedType}"
+
+    -->    """decodeRecord =
+    -->         Decode.map2
+    -->            Record
+    -->               ( Decode.field \"a\" Decode.int )
+    -->               ( Decode.field \"b\" decodeImportedType )\n
+    -->    encodeRecord a =
+    -->         Encode.object
+    -->            [ (\"a\", Encode.int a.a)
+    -->            , (\"b\", encodeImportedType a.b)
+    -->            ]"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
+
 Note that the last two lines are to make the expected outcome more readable
 -}
 both : ExtraPackage -> String -> String
