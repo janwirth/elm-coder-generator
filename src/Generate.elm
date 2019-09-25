@@ -93,6 +93,16 @@ encodersWithImports sources =
     -->         |> String.replace "                    " "" -- adjust to formatting
     -->         |> String.replace "                   " "" -- adjust to formatting
 
+    both Pipeline "type alias AList = List Qualified.ImportedType"
+
+    -->   """decodeAList =
+    -->         Decode.list Qualified.decodeImportedType\n
+    -->      encodeAList a =
+    -->         (Encode.list Qualified.encodeImportedType) a"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
+
 Note that the last two lines are to make the expected outcome more readable
 -}
 both : ExtraPackage -> String -> String

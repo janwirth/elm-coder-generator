@@ -59,7 +59,7 @@ encoderHelp topLevel rawName a =
                     txt
 
         recurseOn x y =
-            x ++ " << " ++ (bracketIfSpaced <| encoderHelp False "" y)
+            x ++ " " ++ (bracketIfSpaced <| encoderHelp False "" y)
     in
     case a of
         TypeArray b ->
