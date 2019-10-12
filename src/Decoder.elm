@@ -1,6 +1,6 @@
 module Decoder exposing (decoder)
 
-import Destructuring exposing (bracket, bracketIfSpaced, capitalize, quote, removeColons, tab, tabLines)
+import Destructuring exposing (bracket, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (concat, filter, indexedMap, length, map, map2, range)
 import ParseType exposing (typeNick)
 import String exposing (join, split)
@@ -22,7 +22,7 @@ decoder extra typeDef =
             split "\n" <| decoderHelp True typeDef.name typeDef.theType extra
 
         decoderName =
-            "decode" ++ removeColons typeDef.name ++ " ="
+            "decode" ++ replaceColons typeDef.name ++ " ="
     in
     decoderName :: decoderBody
 
@@ -34,7 +34,7 @@ decoderHelp topLevel rawName a extra =
             x ++ " " ++ (bracketIfSpaced <| decoderHelp False "" y extra)
             
         name =
-            removeColons rawName
+            replaceColons rawName
     in
     case a of
         TypeArray b ->
@@ -64,7 +64,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ typeNick a
+                            "decode" ++ (typeNick a |> replaceColons)
 
                         _ ->
                             "decode" ++ name
@@ -233,11 +233,13 @@ decoderProduct productType ( constructor, subTypes ) extra =
 decoderRecord : String -> List TypeDef -> ExtraPackage -> String
 decoderRecord name xs extra =
     let
-        fieldDecode x =
-            field fieldNum (quote x.name) (subDecoder x.theType) extra
 
         subDecoder x =
-            bracketIfSpaced <| decoderHelp False "" x extra
+            decoderHelp False "" x extra
+            |> bracketIfSpaced
+
+        fieldDecode x =
+            field fieldNum (quote x.name) (subDecoder x.theType) extra
 
         fieldNum =
             length xs
@@ -326,8 +328,8 @@ decoderUnionComplex name xs extra =
             quote constructor ++ " ->\n" ++ (tabLines 1 <| decoderProduct False ( constructor, fields ) extra)
     in
     join "\n" <|
-        [ tab 1 <| "Decode.field \"Constructor\" Decode.string |> Decode.andThen decode" ++ removeColons name ++ "Help" ++ "\n"
-        , "decode" ++ removeColons name ++ "Help constructor ="
+        [ tab 1 <| "Decode.field \"Constructor\" Decode.string |> Decode.andThen decode" ++ replaceColons name ++ "Help" ++ "\n"
+        , "decode" ++ replaceColons name ++ "Help constructor ="
         , tab 1 "case constructor of"
         ]
             ++ (map (tabLines 2) <| map decodeConstructor xs)

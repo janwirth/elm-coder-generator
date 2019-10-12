@@ -22,7 +22,7 @@ import Destructuring exposing
     , deunion
     , dropWord
     , regex
-    , removeColons
+    , replaceColons
     , removeNothings
     , removeStringLiterals
     , singleLine
@@ -51,7 +51,7 @@ aliasDefs types =
 
 anonymousType : Type -> TypeDef
 anonymousType a =
-    { name = typeNick a, theType = a }
+    { name = replaceColons <| typeNick a, theType = a }
 
 
 anonymousTypes : Bool -> List TypeDef -> List TypeDef

@@ -21,7 +21,7 @@ module Destructuring exposing
     , outsideCurly
     , quote
     , remove
-    , removeColons
+    , replaceColons
     , removeNothings
     , removeStringLiterals
     , regex
@@ -314,8 +314,8 @@ remove a b =
     replace a (\_ -> "") b
 
 
-removeColons txt =
-    remove "\\." txt
+replaceColons =
+    replace "\\." (\_ -> "_")
 
 
 removeNothings : List (Maybe a) -> List a

@@ -1,6 +1,6 @@
 module Encoder exposing (encoder)
 
-import Destructuring exposing (bracketCommas, bracketIfSpaced, capitalize, quote, removeColons, tab, tabLines)
+import Destructuring exposing (bracketCommas, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (filter, indexedMap, length, map, map2, range)
 import ParseType exposing (typeNick)
 import String exposing (contains, dropRight, join, split)
@@ -30,7 +30,7 @@ encoder typeDef =
                     "encode" ++ name ++ " a ="
 
         name =
-            removeColons typeDef.name --turn "Vec3.vec3" into "Vec3vec3"
+            replaceColons typeDef.name
         
         vars a =
             map var <| range 1 (length a)
@@ -48,7 +48,7 @@ encoderHelp : Bool -> String -> Type -> String
 encoderHelp topLevel rawName a =
     let
         name =
-            removeColons rawName
+            replaceColons rawName
         
         maybeAppend txt =
             case topLevel of
@@ -76,7 +76,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ (typeNick a |> replaceColons)
 
                         _ ->
                             "encode" ++ name
@@ -203,7 +203,7 @@ encoderDict : String -> ( Type, Type ) -> String
 encoderDict name ( b, c ) =
     let
         subEncoderName =
-            "encode" ++ removeColons name ++ "Tuple"
+            "encode" ++ replaceColons name ++ "Tuple"
     in
     join "\n" <|
         [ "let"
@@ -290,7 +290,7 @@ encoderRecord : List TypeDef -> String
 encoderRecord xs =
     let
         fieldEncode x =
-            "(" ++ quote (removeColons x.name) ++ ", " ++ subEncoder x.theType ++ " a." ++ removeColons x.name ++ ")"
+            "(" ++ quote (replaceColons x.name) ++ ", " ++ subEncoder x.theType ++ " a." ++ replaceColons x.name ++ ")"
 
         subEncoder x =
             bracketIfSpaced <| encoderHelp False "" x
