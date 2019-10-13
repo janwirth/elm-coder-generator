@@ -78,6 +78,7 @@ if (require.main === module) {
     run()
 }
 
+// Check whether this module is code piped to or is called with files as argument
 async function run () {
     // detectMode
     const isPipedTo = !process.stdin.isTTY
@@ -93,3 +94,5 @@ async function run () {
         console.log('Please pipe input or pass filenames')
     }
 }
+
+module.exports = makeCoders
