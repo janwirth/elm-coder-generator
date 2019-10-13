@@ -14,27 +14,35 @@ npm i -g decgen
 ## CLI
 Generate decoders for Example.elm (available in this repo):
 
+*It grabs and generates code only for type definitions inside these annotations.*
+
 ```
 decgen Example.elm
 ```
 
 Or pipe to `decgen`:
-
 ```sh
-echo '-- [decgen-start]\n type X = Int\n -- [decgen-end]' | decgen
+echo '-- [decgen-start]\n type X = Int\n-- [decgen-end]' | decgen 
 ```
 output
 ```elm
 -- [decgen-start]
-type X = Int
+ type X = Int
+
+-- [decgen-generated-start] -- DO NOT MODIFY or remove this line
+decodeX =
+   Decode.int
+
+encodeX a =
+   Encode.int a 
 -- [decgen-end]
 ```
 
 ## API
 ```
-const m = require('.')
+const generate = require('decgen')
 
-m('-- [decgen-start]\n type X = Int\n -- [decgen-end]').then(x => console.log(x))
+generate('-- [decgen-start]\n type X = Int\n -- [decgen-end]').then(x => console.log(x))
 
 // -> decodeX =
 // ->    Decode.int
