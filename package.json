@@ -1,6 +1,6 @@
 {
   "name": "decgen",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Builds JSON decoders and encoders for your Elm types.",
   "main": "index.js",
   "directories": {
@@ -18,7 +18,11 @@
   "bugs": {
     "url": "https://github.com/dkodaj/decgen/issues"
   },
-  "files": ["index.js", "src/Cli.js", "src/generate.js"],
+  "files": [
+    "index.js",
+    "src/Cli.js",
+    "src/generate.js"
+  ],
   "bin": {
     "decgen": "./index.js"
   },

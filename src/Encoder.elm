@@ -131,7 +131,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ (replaceColons <| typeNick a)
 
                         _ ->
                             "encode" ++ name
