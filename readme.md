@@ -1,8 +1,9 @@
-# Elm coders generator
+# Elm coder generator
 
 Builds JSON decoders and encoders for your Elm types.
 
 Demo using the kakoune editor piping to the CLI.
+
 [![asciicast](https://asciinema.org/a/NuovOo8YV4G5DivrEkCHhbdNl.svg)](https://asciinema.org/a/NuovOo8YV4G5DivrEkCHhbdNl)
 
 ## Installation
