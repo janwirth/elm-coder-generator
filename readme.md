@@ -61,3 +61,8 @@ $ git clone https://github.com/dkodaj/decgen
 $ cd decgen
 $ elm make src/Cli.elm --output src/Cli.js --optimize
 ```
+
+## Acknowledgements
+Special thanks to Dániel Kodaj @dkodaj for building the meat of the coder generator.
+
+Of course, thanks to @evancz and @stoeffel.
