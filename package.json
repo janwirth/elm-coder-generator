@@ -1,6 +1,6 @@
 {
   "name": "decgen",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Builds JSON decoders and encoders for your Elm types.",
   "main": "index.js",
   "directories": {
