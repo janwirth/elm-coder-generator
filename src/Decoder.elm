@@ -347,7 +347,7 @@ field n name dec extra =
         False ->
             case extra of
                 Extra ->
-                    "|> Extra.andMap Decode.field(" ++ name ++ " " ++ dec ++ ")"
+                    "|> Extra.andMap (Decode.field " ++ name ++ " " ++ dec ++ ")"
 
                 Pipeline ->
                     "|> Pipeline.required " ++ name ++ " " ++ dec
