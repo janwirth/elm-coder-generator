@@ -194,6 +194,7 @@ civilize txt =
     let
         to_ =
             replace "[(){}:,]" (\_ -> "_")
+            >> String.replace "." "_"
 
         deleteSpace =
             remove " "

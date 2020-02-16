@@ -77,6 +77,26 @@ encodersWithImports sources =
     -->         |> String.replace "                    " "" -- adjust to formatting
     -->         |> String.replace "                   " "" -- adjust to formatting
 
+    both Pipeline "type alias ListWithAnonymousType = List (Id.Id, String)"
+
+    --> """decodeListWithAnonymousType =
+    -->         Decode.list decodeTuple_Id_Id_String_\n
+    -->    decodeTuple_Id_Id_String_ =
+    -->         Decode.map2
+    -->            (\\a1 a2 -> (a1, a2))
+    -->               ( Decode.field "A1" Id.decodeId )
+    -->               ( Decode.field "A2" Decode.string )\n
+    -->    encodeListWithAnonymousType a =
+    -->         (Encode.list encodeTuple_Id_Id_String_) a\n
+    -->    encodeTuple_Id_Id_String_ (a1, a2) =
+    -->         Encode.object
+    -->            [ ("A1", Id.encodeId a1)
+    -->            , ("A2", Encode.string a2)
+    -->            ]"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
+
     both Pipeline "type alias Record = {a : Int, b : ImportedType}"
 
     -->    """decodeRecord =
@@ -220,3 +240,4 @@ imports output =
             , importEnc
             , [ "\n" ]
             ]
+
