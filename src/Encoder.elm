@@ -2,7 +2,7 @@ module Encoder exposing (encoder)
 
 import Destructuring exposing (bracketCommas, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (filter, indexedMap, length, map, map2, range)
-import ParseType exposing (typeNick)
+import Generate.Type
 import String exposing (contains, dropRight, join, split)
 import Types exposing (Type(..), TypeDef, coreTypeForEncoding)
 
@@ -76,7 +76,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ (typeNick a |> replaceColons)
+                            "encode" ++ (Generate.Type.nick a |> replaceColons)
 
                         _ ->
                             "encode" ++ name
@@ -93,7 +93,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ Generate.Type.nick a
 
                         _ ->
                             "encode" ++ name
@@ -131,7 +131,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ (replaceColons <| typeNick a)
+                            "encode" ++ (replaceColons <| Generate.Type.nick a)
 
                         _ ->
                             "encode" ++ name
@@ -144,7 +144,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ Generate.Type.nick a
 
                         _ ->
                             "encode" ++ name
@@ -157,7 +157,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ Generate.Type.nick a
 
                         _ ->
                             "encode" ++ name
@@ -173,7 +173,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ typeNick a
+                            "encode" ++ Generate.Type.nick a
 
                         _ ->
                             "encode" ++ name

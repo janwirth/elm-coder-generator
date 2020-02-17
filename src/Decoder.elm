@@ -2,14 +2,15 @@ module Decoder exposing (decoder)
 
 import Destructuring exposing (bracket, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (concat, filter, indexedMap, length, map, map2, range)
-import ParseType exposing (typeNick)
+import Generate.Type
 import String exposing (join, split)
 import Types exposing (ExtraPackage(..), Type(..), TypeDef, coreType)
 
 
-decoder : ExtraPackage -> TypeDef -> List String
-decoder extra typeDef =
+decoder : ExtraPackage -> List String -> TypeDef -> List String
+decoder extra toLazify typeDef =
     let
+        shouldLazify = List.member typeDef.name toLazify
         decoderBody =
             case typeDef.theType of
                 TypeUnion _ ->
@@ -23,8 +24,12 @@ decoder extra typeDef =
 
         decoderName =
             "decode" ++ replaceColons typeDef.name ++ " ="
+        lazify body =
+            case List.member typeDef.name toLazify of
+                True -> (tab 1 "Decode.lazy (\\_ ->") :: (map (tab 1) body) ++ [tab 1 ")"]
+                False -> body
     in
-    decoderName :: decoderBody
+    decoderName :: (lazify decoderBody)
 
 
 decoderHelp : Bool -> String -> Type -> ExtraPackage -> String
@@ -64,7 +69,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ (typeNick a |> replaceColons)
+                            "decode" ++ (Generate.Type.nick a |> replaceColons)
 
                         _ ->
                             "decode" ++ name
@@ -77,7 +82,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (typeNick a) b extra
+                            decoderRecord (Generate.Type.nick a) b extra
 
                         _ ->
                             decoderRecord (name ++ "Extended") b extra
@@ -85,7 +90,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ typeNick a
+                            "decode" ++ Generate.Type.nick a
 
                         _ ->
                             "decode" ++ name ++ "Extended"
@@ -127,7 +132,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ typeNick a
+                            "decode" ++ Generate.Type.nick a
 
                         _ ->
                             "decode" ++ name
@@ -137,7 +142,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (typeNick a) b extra
+                            decoderRecord (Generate.Type.nick a) b extra
 
                         _ ->
                             decoderRecord name b extra
@@ -145,7 +150,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ typeNick a
+                            "decode" ++ Generate.Type.nick a
 
                         _ ->
                             "decode" ++ name
@@ -161,7 +166,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ typeNick a
+                            "decode" ++ Generate.Type.nick a
 
                         _ ->
                             "decode" ++ name

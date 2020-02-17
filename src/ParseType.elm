@@ -4,7 +4,6 @@ module ParseType exposing
     , extractBasic
     , grabRawTypes
     , grabTypeDefs
-    , typeNick
 
     -- exposed for testing only
     , typeOf
@@ -30,28 +29,15 @@ import Destructuring exposing
 import List exposing (filter, map)
 import String exposing (dropRight, join, trim, words)
 import Types exposing (RawType, Type(..), TypeDef)
-
-
-aliasDefs : List TypeDef -> List (List String)
-aliasDefs types =
-    let
-        name a =
-            case a.theType of
-                TypeExtendedRecord _ ->
-                    a.name ++ "Extended"
-
-                _ ->
-                    a.name
-
-        def a =
-            [ "type alias " ++ name a ++ " = " ++ typeDescr True a.theType ]
-    in
-    map def types
+import List.Extra
+import Generate.Type
+import Dict
+import Graph
 
 
 anonymousType : Type -> TypeDef
 anonymousType a =
-    { name = replaceColons <| typeNick a, theType = a }
+    { name = replaceColons <| Generate.Type.nick a, theType = a }
 
 
 anonymousTypes : Bool -> List TypeDef -> List TypeDef
@@ -70,11 +56,17 @@ extractAll encoding txt =
 
 --includes type defs for anonymous types, like the record inside this:
     -- type Role = User { name : String, email: String }
-extractAllWithDefs : Bool -> String -> ( List TypeDef, List (List String) )
+extractAllWithDefs : Bool -> String -> { topLevel : List TypeDef, anonymous : List (List String), toLazify : List String}
 extractAllWithDefs encoding txt =
     let
         ( declared, anonymous ) =
             extractHelp encoding txt
+        adjacencies : List (Graph.VertexAndAdjacencies String)
+        adjacencies =
+            declared ++ anonymous
+            |> List.map (\type_ -> (type_.name , Graph.dependencies type_) )
+
+        toBreak = Graph.breakingVertices adjacencies
 
         nonEmptyRecord a =
             Types.isRecord a && not (Types.isEmptyRecord a)
@@ -86,7 +78,7 @@ extractAllWithDefs encoding txt =
         filtered =
             filter (not << Types.isExtensible) (declared ++ anonymous)
     in
-    ( filtered, aliasDefs needToDefine )
+    { topLevel = filtered, anonymous = Generate.Type.aliasDefinitions needToDefine, toLazify = toBreak}
 
 --ignore anonymous tyoes
 extractBasic : Bool -> String -> List TypeDef
@@ -99,12 +91,15 @@ extractBasic encoding txt =
 
 
 
-{-| Don't know what this does
+{-| Help the extractor do it's thing
 
     import Types exposing (RawType, Type(..), TypeDef)
 
     extractHelp True "type Either a b = Left a | Right b"
     --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeImported "a"]),("Right",[TypeImported "b"])] }],[])
+
+    extractHelp True "type Parent a = ParentOf (Parent a)"
+    --> ([{ name = "Parent", theType = TypeProduct ("ParentOf",[TypeProduct ("(Parent",[TypeImported "a)"])]) }],[])
 -}
 extractHelp : Bool -> String -> ( List TypeDef, List TypeDef )
 extractHelp encoding txt =
@@ -117,14 +112,22 @@ extractHelp encoding txt =
     in
     ( scannedDeclared, anonymous )
 
+{-|
 
+    grabTypeDefs : "type alias B = Int"
+    --> []
+
+-}
 grabTypeDefs : String -> List TypeDef
 grabTypeDefs txt =
     let
         toTypeDef a =
             { name = a.name, theType = typeOf a.extensible a.def }
+        rawTypes = grabRawTypes txt
+
     in
-    map toTypeDef <| grabRawTypes txt
+    map toTypeDef <| rawTypes
+
 
 
 grabRawType : List (Maybe String) -> Maybe RawType
@@ -284,128 +287,6 @@ typeOf extensible def =
 
                                         [] ->
                                             TypeError "Union type conversion error: empty"
-
-
-typeDescr : Bool -> Type -> String
-typeDescr bracketIt a =
-    --    typeDescr False (TypeList TypeInt) == "List Int"
-    --    typeDescr True (TypeList TypeInt) == "(List Int)"
-    let
-        wrap x =
-            if bracketIt then
-                "(" ++ x ++ ")"
-
-            else
-                x
-    in
-    case a of
-        TypeArray b ->
-            wrap <| "Array " ++ typeDescr True b
-
-        TypeBool ->
-            "Bool"
-
-        TypeDict ( b, c ) ->
-            "Dict " ++ (bracketIfSpaced <| typeDescr False b) ++ " " ++ (bracketIfSpaced <| typeDescr False c)
-
-        TypeError b ->
-            b
-
-        TypeExtendedRecord b ->
-            --same as TypeRecord
-            let
-                fieldString x =
-                    x.name ++ ": " ++ typeDescr False x.theType ++ ", "
-
-                fields =
-                    dropRight 2 <| String.concat <| map fieldString b
-            in
-            "{" ++ fields ++ "}"
-
-        TypeExtensible b ->
-            let
-                fieldString x =
-                    x.name ++ ": " ++ typeDescr False x.theType ++ ", "
-
-                fields =
-                    dropRight 2 <| String.concat <| map fieldString b
-            in
-            "{ a | " ++ fields ++ "}"
-
-        TypeFloat ->
-            "Float"        
-        
-        TypeImported b ->
-            b
-
-        TypeInt ->
-            "Int"
-
-        TypeList b ->
-            wrap <| "List " ++ typeDescr True b
-
-        TypeMaybe b ->
-            wrap <| "Maybe " ++ typeDescr True b
-
-        TypeProduct ( b, c ) ->
-            case c of
-                [] ->
-                    b
-
-                _ ->
-                    b ++ " " ++ (String.concat <| map (typeDescr True) c)
-
-        TypeRecord b ->
-            let
-                fieldString x =
-                    x.name ++ ": " ++ typeDescr False x.theType ++ ", "
-
-                fields =
-                    dropRight 2 <| String.concat <| map fieldString b
-            in
-            "{" ++ fields ++ "}"
-
-        TypeString ->
-            "String"
-
-        TypeTuple bs ->
-            "(" ++ (join ", " <| map (typeDescr False) bs) ++ ")"
-
-        TypeUnion b ->
-            let
-                constructorString ( x, y ) =
-                    case y of
-                        [] ->
-                            x ++ " | "
-
-                        _ ->
-                            x ++ " " ++ (String.concat <| map (typeDescr True) y) ++ " | "
-
-                constructors =
-                    dropRight 2 <| String.concat <| map constructorString b
-            in
-            constructors
-
-
-typeNick : Type -> String
-typeNick a =
-    let
-        tag prefix =
-            prefix ++ (civilize <| typeDescr False a)
-    in
-    case a of
-        TypeExtendedRecord _ ->
-            tag "Record"
-
-        TypeRecord _ ->
-            tag "Record"
-
-        TypeTuple _ ->
-            tag "Tuple"
-
-        _ ->
-            tag ""
-
 
 
 --== Extensible records ==--

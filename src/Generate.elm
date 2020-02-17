@@ -25,9 +25,9 @@ bothWithImports extra txt =
 decodersWithImports : ExtraPackage -> List String -> String
 decodersWithImports extra sources =
     stringify <|
-        ( map (decoder extra)
+        ( map (decoder extra [])
             <| sortBy .name
-                <| ParseModules.parseAll False sources 
+                <| ParseModules.parseAll False sources
         )
 
 encodersWithImports : List String -> String
@@ -35,7 +35,7 @@ encodersWithImports sources =
     stringify <|
         ( map encoder
             <| sortBy .name
-                <| ParseModules.parseAll True sources 
+                <| ParseModules.parseAll True sources
         )
 
 
@@ -44,6 +44,47 @@ encodersWithImports sources =
 {-| Generete encoders/decoders for some source code
 
     import Types exposing (ExtraPackage(..))
+
+    both Pipeline "type RecursiveExample = RecursiveExample RecursiveData\ntype alias RecursiveData = RecursiveExample"
+    --> """decodeRecursiveData =
+    -->         Decode.lazy (\\_ ->
+    -->            decodeRecursiveExample
+    -->         )\n
+    -->      decodeRecursiveExample =
+    -->         Decode.map RecursiveExample decodeRecursiveData\n
+    -->      encodeRecursiveData a =
+    -->         encodeRecursiveExample a\n
+    -->      encodeRecursiveExample (RecursiveExample a1) =
+    -->         encodeRecursiveData a1"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
+
+
+    both Pipeline "type RecursiveExample = RecursiveExample RecursiveData RecursiveData2\ntype alias RecursiveData2 = RecursiveExample\ntype alias RecursiveData = RecursiveExample"
+    --> """decodeRecursiveData =
+    -->         decodeRecursiveExample\n
+    -->      decodeRecursiveData2 =
+    -->         decodeRecursiveExample\n
+    -->      decodeRecursiveExample =
+    -->         Decode.lazy (\\_ ->
+    -->            Decode.map2
+    -->               RecursiveExample
+    -->                  ( Decode.field \"A1\" decodeRecursiveData )
+    -->                  ( Decode.field \"A2\" decodeRecursiveData2 )
+    -->         )\n
+    -->      encodeRecursiveData a =
+    -->         encodeRecursiveExample a\n
+    -->      encodeRecursiveData2 a =
+    -->         encodeRecursiveExample a\n
+    -->      encodeRecursiveExample (RecursiveExample a1 a2) =
+    -->         Encode.object
+    -->            [ (\"A1\", encodeRecursiveData a1)
+    -->            , (\"A2\", encodeRecursiveData2 a2)
+    -->            ]"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
 
     both Pipeline "type alias TunaOrTofu = Tuna | Tofu"
     --> """decodeTunaOrTofu =
@@ -163,13 +204,13 @@ both extra txt =
 decoders : ExtraPackage -> String -> String
 decoders extra txt =
     let
-        ( allTypes, anonymousDefs ) =
+        { topLevel, anonymous, toLazify} =
             extractAllWithDefs False txt
     in
     stringify <|
-        anonymousDefs
-            ++ (map (decoder extra)
-                <| sortBy .name allTypes)
+        anonymous
+            ++ (map (decoder extra toLazify)
+                <| sortBy .name topLevel)
 
 
 encoders : String -> String
