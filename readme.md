@@ -6,6 +6,13 @@ Demo using the kakoune editor piping to the CLI.
 
 [![asciicast](https://asciinema.org/a/nZnhdNtLGU33OZ8gbHo3VM5jc.svg)](https://asciinema.org/a/nZnhdNtLGU33OZ8gbHo3VM5jc)
 
+
+**Coverage**
+
+|Module         | decls        | let decls     | lambdas     | branches      |
+|---------------|--------------|---------------|-------------|---------------|
+|total          | 96/151 (64%) | 117/168 (70%) | 10/13 (77%) | 190/436 (44%) |
+
 ## Installation
 ```
 npm i -g decgen
@@ -62,7 +69,14 @@ $ cd decgen
 $ elm make src/Cli.elm --output src/Cli.js --optimize
 ```
 
+## Roadmap
+- [ ] support for different data formats
+- [ ] IDE plugins
+- [ ] codec support for encoder / decoder pairs https://package.elm-lang.org/packages/miniBill/elm-codec/latest/
+- [ ] compile plugin / pragma?
+
 ## Acknowledgements
 Special thanks to Dániel Kodaj @dkodaj for building the meat of the coder generator.
 
 Of course, thanks to @evancz and @stoeffel.
+
