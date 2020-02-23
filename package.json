@@ -1,5 +1,5 @@
 {
-  "name": "decgen",
+  "name": "elm-coder-generator",
   "version": "1.0.3",
   "description": "Builds JSON decoders and encoders for your Elm types.",
   "main": "index.js",
@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dkodaj/decgen.git"
+    "url": "git+https://github.com/franzskuffka/elm-coder-generator.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/dkodaj/decgen/issues"
+    "url": "https://github.com/franzskuffka/elm-coder-generator/issues"
   },
   "files": [
     "index.js",
@@ -26,7 +26,7 @@
   "bin": {
     "decgen": "./index.js"
   },
-  "homepage": "https://github.com/dkodaj/decgen#readme",
+  "homepage": "https://github.com/franzskuffka/elm-coder-generator#readme",
   "devDependencies": {
     "mock-fs": "^4.10.1"
   }
