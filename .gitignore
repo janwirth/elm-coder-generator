@@ -3,3 +3,4 @@ tests/VerifyExamples
 elm-stuff/
 src/Cli.js
 .coverage
+E2eTest_result.elm

@@ -193,6 +193,10 @@ capitalize txt =
     (toUpper <| left 1 txt) ++ dropLeft 1 txt
 
 
+{-|
+    civilize "Dict String {a: String}" --> "DictString_a_String_"
+-}
+civilize : String -> String
 civilize txt =
     let
         to_ =
@@ -202,7 +206,9 @@ civilize txt =
         deleteSpace =
             remove " "
     in
-    to_ <| deleteSpace txt
+    txt
+    |> deleteSpace
+    |> to_
 
 
 components : String -> List String
