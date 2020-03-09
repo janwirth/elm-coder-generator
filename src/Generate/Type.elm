@@ -55,6 +55,7 @@ descriptor bracketIt a =
                 x
     in
     case a of
+        TypeParameter parameter -> "Param " ++ parameter
         TypeArray b ->
             wrap <| "Array " ++ descriptor True b
 
@@ -91,7 +92,7 @@ descriptor bracketIt a =
         TypeFloat ->
             "Float"        
         
-        TypeImported b ->
+        TypeCustom b ->
             b
 
         TypeInt ->
@@ -103,7 +104,7 @@ descriptor bracketIt a =
         TypeMaybe b ->
             wrap <| "Maybe " ++ descriptor True b
 
-        TypeProduct ( b, c ) ->
+        TypeOpaque ( b, c ) ->
             case c of
                 [] ->
                     b

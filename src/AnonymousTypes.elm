@@ -1,4 +1,9 @@
-module AnonymousTypes exposing (grabAnonymousTypes)
+module AnonymousTypes exposing
+    ( grabAnonymousTypes
+
+    -- exposed for testing only
+    , anonymousHelp
+    )
 
 import List exposing (any, concat, filter, foldr, map)
 import Types exposing (Type(..), TypeDef, coreType, coreTypeForEncoding)
@@ -23,9 +28,15 @@ anonymous typeDef =
     anonymousHelp True typeDef.theType []
 
 
+{-|
+    import Types exposing (..)
+
+    anonymousHelp True TypeBool [] --> []
+-}
 anonymousHelp : Bool -> Type -> List Type -> List Type
 anonymousHelp topLevel a xs =
     case a of
+        TypeParameter parameter -> xs
         TypeArray b ->
             anonymousHelp False b xs
 
@@ -65,7 +76,7 @@ anonymousHelp topLevel a xs =
         TypeFloat ->
             xs            
         
-        TypeImported b ->
+        TypeCustom b ->
             xs
 
         TypeInt ->
@@ -82,7 +93,7 @@ anonymousHelp topLevel a xs =
                 False ->
                     anonymousHelp False b (TypeMaybe b :: xs)
 
-        TypeProduct ( b, c ) ->
+        TypeOpaque ( b, c ) ->
             case c of
                 [] ->
                     xs

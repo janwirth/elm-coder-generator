@@ -23,7 +23,7 @@ decoder extra toLazify typeDef =
             split "\n" <| decoderHelp True typeDef.name typeDef.theType extra
 
         decoderName =
-            "decode" ++ replaceColons typeDef.name ++ " ="
+            "decode" ++ replaceColons typeDef.name ++ makeParameters typeDef ++ " ="
         lazify body =
             case List.member typeDef.name toLazify of
                 True -> (tab 1 "Decode.lazy (\\_ ->") :: (map (tab 1) body) ++ [tab 1 ")"]
@@ -31,6 +31,12 @@ decoder extra toLazify typeDef =
     in
     decoderName :: (lazify decoderBody)
 
+
+makeParameters : TypeDef -> String
+makeParameters def =
+    Types.getParameters def.theType
+    |> List.map (\param -> " decode" ++ capitalize param)
+    |> String.join " "
 
 decoderHelp : Bool -> String -> Type -> ExtraPackage -> String
 decoderHelp topLevel rawName a extra =
@@ -42,6 +48,8 @@ decoderHelp topLevel rawName a extra =
             replaceColons rawName
     in
     case a of
+        TypeParameter parameter ->
+            "decode" ++ capitalize parameter
         TypeArray b ->
             recurseOn "Decode.array" b
 
@@ -101,7 +109,7 @@ decoderHelp topLevel rawName a extra =
         TypeFloat ->
             "Decode.float"
 
-        TypeImported importedTypeReference ->
+        TypeCustom importedTypeReference ->
             case String.split "." importedTypeReference |> List.reverse of
                 typeName :: reversedPath ->
                     let
@@ -124,7 +132,7 @@ decoderHelp topLevel rawName a extra =
         TypeMaybe b ->
             recurseOn "Decode.maybe" b
 
-        TypeProduct b ->
+        TypeOpaque b ->
             case topLevel of
                 True ->
                     decoderProduct True b extra

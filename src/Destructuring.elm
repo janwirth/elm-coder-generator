@@ -137,6 +137,9 @@ detupleHelp idxs txt elements =
                     detupleHelp xs txt elements
 
 
+{-| Split variants of a union type
+    deunion "A | B | C d" --> [("A",[""]),("B",[""]),("C",["d"])]
+-}
 deunion : String -> List ( String, List String )
 deunion txt =
     removeNothings <| map deunionHelp <| split "|" <| singleSpace txt

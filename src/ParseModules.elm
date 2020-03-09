@@ -70,7 +70,7 @@ parseAll encoding sources =
             []
     
 -- takes a typeDef, defined in homeModule, and looks for its definition in a list of modules (the dependencies)
--- intended for cases where typeDef.theType = TypeImported a
+-- intended for cases where typeDef.theType = TypeCustom a
 --- and cases where some component of typeDef (e.g. a field of a record) is an imported type
 pullImported : TypeDef -> Module -> List Module -> List TypeDef -> List TypeDef
 pullImported typeDef homeModule modulePool pulled =
@@ -87,7 +87,7 @@ pullImportedHelp thisType homeModule modulePool pulled =
             pullImportedHelp a homeModule modulePool pulled
     in
     case thisType of
-        TypeImported name ->
+        TypeCustom name ->
             case define name homeModule modulePool of
                 Just (newType, newHome) ->
                     pullImportedHelp 
@@ -102,6 +102,8 @@ pullImportedHelp thisType homeModule modulePool pulled =
         TypeArray a ->
             (recurseOnHelp a) ++ pulled
             
+        TypeParameter parameter ->
+            pulled
         TypeBool ->
             pulled
             
@@ -129,7 +131,7 @@ pullImportedHelp thisType homeModule modulePool pulled =
         TypeMaybe a ->
             pulled ++ recurseOnHelp a
             
-        TypeProduct ( a, list ) ->
+        TypeOpaque ( a, list ) ->
             pulled ++ List.concat (List.map recurseOnHelp list)
             
         TypeRecord list ->

@@ -60,6 +60,14 @@ encodersWithImports sources =
     -->         |> String.replace "                    " "" -- adjust to formatting
     -->         |> String.replace "                   " "" -- adjust to formatting
 
+    both Pipeline "type Parameterized a = Parameterized a"
+    --> """decodeParameterized decodeA =
+    -->         Decode.map Parameterized decodeA\n
+    -->      encodeParameterized encodeA (Parameterized a1) =
+    -->         encodeA a1"""
+    -->         |> String.replace "                     " "" -- adjust to formatting
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
 
     both Pipeline "type RecursiveExample = RecursiveExample RecursiveData RecursiveData2\ntype alias RecursiveData2 = RecursiveExample\ntype alias RecursiveData = RecursiveExample"
     --> """decodeRecursiveData =

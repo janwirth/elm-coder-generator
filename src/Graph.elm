@@ -195,6 +195,7 @@ dependencies typeDef =
         derive : Type -> List String
         derive theType =
             case theType of
+                  TypeParameter _ -> []
                   TypeBool -> []
                   TypeFloat -> []
                   TypeString -> []
@@ -203,14 +204,14 @@ dependencies typeDef =
                   TypeError _ -> []
                   TypeExtendedRecord _ -> [] --record defined using an extensible one
                   TypeExtensible _ -> [] --extensible record
-                  TypeImported t -> [t] --type not core and not defined in the input
+                  TypeCustom t -> [t] --type not core and not defined in the input
 
                   TypeArray t -> derive t
                   TypeDict (t1, t2) -> derive t1 ++ derive t2
                   TypeList listType ->
                       derive listType
                   TypeMaybe t -> derive theType
-                  TypeProduct (_, t) -> List.map derive t
+                  TypeOpaque (_, t) -> List.map derive t
                     |> List.concat
                   TypeRecord types ->
                     types

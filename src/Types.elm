@@ -9,15 +9,16 @@ type Type
     | TypeExtendedRecord (List TypeDef) --record defined using an extensible one
     | TypeExtensible (List TypeDef) --extensible record
     | TypeFloat
-    | TypeImported String --type not core and not defined in the input
+    | TypeCustom String --type not core and not defined in the input
     | TypeInt
     | TypeList Type
     | TypeMaybe Type
-    | TypeProduct ( String, List Type )
+    | TypeOpaque ( String, List Type )
     | TypeRecord (List TypeDef)
     | TypeString
     | TypeTuple (List Type)
     | TypeUnion (List ( String, List Type ))
+    | TypeParameter String
 
 --options for decoding large record types
 type ExtraPackage
@@ -119,3 +120,29 @@ isRecord this =
 
         _ ->
             False
+
+getParameters : Type -> List String
+getParameters theType =
+    case theType of
+        TypeParameter parameter -> [parameter]
+        TypeOpaque (_, t) -> List.map getParameters t |> List.concat
+        TypeUnion variants ->
+            variants
+            |> List.map ((\(_, t) -> List.map getParameters t) >> List.concat)
+            |> List.concat
+            
+        TypeList t -> getParameters t
+        TypeDict (_ , t)-> getParameters t
+        TypeArray t -> getParameters t
+        TypeBool -> []
+        TypeError _ -> []
+        TypeExtendedRecord t -> List.map (.theType >> getParameters) t |> List.concat
+        TypeExtensible t -> List.map (.theType >> getParameters) t |> List.concat
+        TypeFloat -> []
+        TypeCustom _ -> []
+        TypeInt -> []
+        TypeMaybe a -> getParameters a
+        TypeRecord fields -> List.map (.theType >> getParameters) fields |> List.concat
+        TypeString -> []
+        TypeTuple t -> List.map getParameters t |> List.concat
+

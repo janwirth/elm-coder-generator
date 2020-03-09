@@ -14,20 +14,22 @@ encoder typeDef =
             map (tab 1) <| split "\n" <| encoderHelp True typeDef.name typeDef.theType
 
         encoderName =
+            "encode" ++ name ++ makeParameters typeDef ++ intrinsicParams ++ " ="
+        intrinsicParams =
             case typeDef.theType of
                 TypeTuple xs ->
-                    "encode" ++ name ++ " (" ++ varListComma xs ++ ") ="
+                    " (" ++ varListComma xs ++ ")"
 
-                TypeProduct ( b, c ) ->
+                TypeOpaque ( b, c ) ->
                     case c of
                         [] ->
-                            "encode" ++ name ++ " a ="
+                            " a"
 
                         _ ->
-                            "encode" ++ name ++ " (" ++ b ++ " " ++ varList c ++ ") ="
+                            " (" ++ b ++ " " ++ varList c ++ ")"
 
                 _ ->
-                    "encode" ++ name ++ " a ="
+                    " a"
 
         name =
             replaceColons typeDef.name
@@ -43,6 +45,12 @@ encoder typeDef =
     in
     encoderName :: encoderBody
 
+
+makeParameters : TypeDef -> String
+makeParameters def =
+    Types.getParameters def.theType
+    |> List.map (\param -> " encode" ++ capitalize param)
+    |> String.join " "
 
 encoderHelp : Bool -> String -> Type -> String
 encoderHelp topLevel rawName a =
@@ -62,6 +70,7 @@ encoderHelp topLevel rawName a =
             x ++ " " ++ (bracketIfSpaced <| encoderHelp False "" y)
     in
     case a of
+        TypeParameter parameter -> "encode" ++ capitalize parameter
         TypeArray b ->
             maybeAppend <| recurseOn "Encode.array" b
 
@@ -104,7 +113,7 @@ encoderHelp topLevel rawName a =
         TypeFloat ->
             maybeAppend <| "Encode.float"
 
-        TypeImported importedTypeReference ->
+        TypeCustom importedTypeReference ->
             case String.split "." importedTypeReference |> List.reverse of
                 typeName :: reversedPath ->
                     let
@@ -136,7 +145,7 @@ encoderHelp topLevel rawName a =
                         _ ->
                             "encode" ++ name
 
-        TypeProduct b ->
+        TypeOpaque b ->
             case topLevel of
                 True ->
                     encoderProduct True False b

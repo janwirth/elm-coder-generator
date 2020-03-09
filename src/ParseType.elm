@@ -95,11 +95,14 @@ extractBasic encoding txt =
 
     import Types exposing (RawType, Type(..), TypeDef)
 
+    extractHelp True "type Either a b = Left a Int Custom | Right b"
+    --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeParameter "a", TypeInt,TypeCustom "Custom"]),("Right",[TypeParameter "b"])] }],[])
+
     extractHelp True "type Either a b = Left a | Right b"
-    --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeImported "a"]),("Right",[TypeImported "b"])] }],[])
+    --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeParameter "a"]),("Right",[TypeParameter "b"])] }],[])
 
     extractHelp True "type Parent a = ParentOf (Parent a)"
-    --> ([{ name = "Parent", theType = TypeProduct ("ParentOf",[TypeProduct ("(Parent",[TypeImported "a)"])]) }],[])
+    --> ([{ name = "Parent", theType = TypeOpaque ("ParentOf",[TypeOpaque ("(Parent",[TypeParameter "a)"])]) }],[])
 -}
 extractHelp : Bool -> String -> ( List TypeDef, List TypeDef )
 extractHelp encoding txt =
@@ -180,10 +183,10 @@ typeRegex =
 
     typeOf False "List String" --> TypeList TypeString
     typeOf False "MyType | String" --> TypeUnion [("MyType",[]),("String",[])]
-    typeOf False "MyType" --> TypeImported "MyType"
+    typeOf False "MyType" --> TypeCustom "MyType"
     typeOf False "String" --> TypeString
     typeOf False "{age : Int}" --> TypeRecord [{ name = "age", theType = TypeInt }]
-    typeOf True "{generic : generic}" --> TypeExtensible [{ name = "generic", theType = TypeImported "generic" }]
+    typeOf True "{generic : generic}" --> TypeExtensible [{ name = "generic", theType = TypeParameter "generic" }]
     typeOf False "(String, Int)" --> TypeTuple [TypeString, TypeInt]
     typeOf False "(String, Int, Bool)" --> TypeTuple [TypeString, TypeInt, TypeBool]
 -}
@@ -274,13 +277,20 @@ typeOf extensible def =
                                                     ( x, map subType y )
                                     in
                                     case deunion def of
-                                        ( x, y ) :: [] ->
+                                        ( name, y ) :: [] ->
                                             case y of
                                                 [ "" ] ->
-                                                    TypeImported x
-
+                                                    let
+                                                        isParameter =
+                                                            String.uncons
+                                                            >> Maybe.map (Tuple.first >> Char.isUpper)
+                                                            >> Maybe.withDefault False
+                                                    in
+                                                        case isParameter name of
+                                                            True -> TypeCustom name
+                                                            False -> TypeParameter name
                                                 _ ->
-                                                    TypeProduct ( x, map subType y )
+                                                    TypeOpaque ( name, map subType y )
 
                                         c :: ds ->
                                             TypeUnion <| map constructor (c :: ds)
@@ -335,14 +345,14 @@ detectExtendedRecordHelp declaredTypes fieldsSoFar input =
         TypeMaybe ofType ->
             TypeMaybe (lookAt ofType)
 
-        TypeProduct ( constructor, [ subType ] ) ->
+        TypeOpaque ( constructor, [ subType ] ) ->
             case extensiblesFor constructor of
                 Just extensibles ->
                     case subType of
                         TypeRecord newFields ->
                             TypeExtendedRecord (fieldsSoFar ++ map lookInto (extensibles ++ newFields))
 
-                        TypeProduct _ ->
+                        TypeOpaque _ ->
                             recursion (fieldsSoFar ++ extensibles) subType
 
                         _ ->
