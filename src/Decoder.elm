@@ -77,7 +77,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ (Generate.Type.nick a |> replaceColons)
+                            "decode" ++ (Generate.Type.identifier a |> replaceColons)
 
                         _ ->
                             "decode" ++ name
@@ -90,7 +90,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (Generate.Type.nick a) b extra
+                            decoderRecord (Generate.Type.identifier a) b extra
 
                         _ ->
                             decoderRecord (name ++ "Extended") b extra
@@ -98,7 +98,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.nick a
+                            "decode" ++ Generate.Type.identifier a
 
                         _ ->
                             "decode" ++ name ++ "Extended"
@@ -140,7 +140,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.nick a
+                            "decode" ++ Generate.Type.identifier a
 
                         _ ->
                             "decode" ++ name
@@ -150,7 +150,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (Generate.Type.nick a) b extra
+                            decoderRecord (Generate.Type.identifier a) b extra
 
                         _ ->
                             decoderRecord name b extra
@@ -158,7 +158,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.nick a
+                            "decode" ++ Generate.Type.identifier a
 
                         _ ->
                             "decode" ++ name
@@ -174,7 +174,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.nick a
+                            "decode" ++ Generate.Type.identifier a
 
                         _ ->
                             "decode" ++ name

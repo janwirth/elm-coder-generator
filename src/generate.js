@@ -1,4 +1,4 @@
-const Module = require('../src/Cli.js')
+const Module = require('../elm-stuff/Cli.js')
 
 function run (code, callback) {
     if (!(typeof callback == 'function')) {

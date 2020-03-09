@@ -37,7 +37,7 @@ import Graph
 
 anonymousType : Type -> TypeDef
 anonymousType a =
-    { name = replaceColons <| Generate.Type.nick a, theType = a }
+    { name = replaceColons <| Generate.Type.identifier a, theType = a }
 
 
 anonymousTypes : Bool -> List TypeDef -> List TypeDef

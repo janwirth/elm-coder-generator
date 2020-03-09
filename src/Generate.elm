@@ -41,7 +41,7 @@ encodersWithImports sources =
 
 --== Generate encoders/decoders from a single .elm file or a bunch of type definitions ==--
 
-{-| Generete encoders/decoders for some source code
+{-| Generate encoders/decoders for some source code
 
     import Types exposing (ExtraPackage(..))
 

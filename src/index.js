@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fs = require('fs')
-const generate = require('./src/generate')
+const generate = require('./generate')
 
 // REGEXES
 
@@ -9,7 +9,7 @@ const generate = require('./src/generate')
 
 async function processAnnotated (code) {
     // grab entire annotated section
-    const annotatedGrabber = /(-- +\[decgen-start\] *\n[\s\S]*?\n-- +\[decgen-end\])/g
+    const annotatedGrabber = /(-- +\[generator-start\] *\n[\s\S]*?\n-- +\[generator-end\])/g
     var reg = annotatedGrabber
     var transformed = code
     var result;
@@ -24,11 +24,11 @@ async function processAnnotated (code) {
 
 async function transformAnnotation (annotatedSection) {
     // grab only the content inside the annotations
-    const annotationContentGrabber = /(-- +\[decgen-start\] *\n)([\s\S]*)(\n-- +\[decgen-end\])/g
+    const annotationContentGrabber = /(-- +\[generator-start\] *\n)([\s\S]*)(\n-- +\[generator-end\])/g
     const insideAnnotations = annotationContentGrabber.exec(annotatedSection)[2]
 
     // separated geenerator input and output
-    const inputGrabber = /([\S\s]+)\n\n-- +\[decgen-generated-start/g
+    const inputGrabber = /([\S\s]+)\n\n-- +\[generator-generated-start/g
     const inputOnly = inputGrabber.exec(insideAnnotations)
     var input
     if (inputOnly) {
@@ -39,7 +39,7 @@ async function transformAnnotation (annotatedSection) {
     }
 
     const generated = await makeCoders(input)
-    const generatedSection = `\n-- [decgen-generated-start] -- DO NOT MODIFY or remove this line\n${generated}`
+    const generatedSection = `\n-- [generator-generated-start] -- DO NOT MODIFY or remove this line\n${generated}`
     // replace the content
     // $1 and $2 are start markers and input types
     // $3 is end marker

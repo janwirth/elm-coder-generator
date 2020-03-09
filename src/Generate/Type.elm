@@ -1,4 +1,4 @@
-module Generate.Type exposing (nick, descriptor, aliasDefinitions )
+module Generate.Type exposing (identifier, descriptor, aliasDefinitions )
 import Types exposing (TypeDef, Type(..))
 import Destructuring exposing 
     ( civilize, bracketIfSpaced)
@@ -22,9 +22,9 @@ aliasDefinitions types =
 
 
 -- @TODO: put this in a separate module
-{-| Derive a vertex ID from a type definition -}
-nick : Type -> String
-nick a =
+{-| Derive a valid elm identifier from a type definition -}
+identifier : Type -> String
+identifier a =
     let
         tag prefix =
             prefix ++ (civilize <| descriptor False a)

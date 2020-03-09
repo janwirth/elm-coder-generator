@@ -1,4 +1,4 @@
-port module GeneratePage exposing (main)
+port module Homepage exposing (main)
 
 import Browser
 import Generate
@@ -112,7 +112,7 @@ view model =
             ]
         , div1 "has-text-centered" <|
             Html.a
-                [ Attr.href "https://github.com/dkodaj/decgen" ]
+                [ Attr.href "https://github.com/franzskuffka/elm-coder-generator" ]
                 [ text "browse"
                 , fa "" "fab fa-github"
                 , text "source"

@@ -180,7 +180,7 @@ dependencies typeDef =
     let
         deriveNickOrDeps {theType} =
             case isComplex theType of
-                True -> [Generate.Type.nick theType]
+                True -> [Generate.Type.identifier theType]
                 False -> derive theType
 
         isComplex : Type -> Bool

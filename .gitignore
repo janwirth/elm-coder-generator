@@ -1,6 +1,7 @@
 tests/VerifyExamples
 tests/VerifyExamples
 elm-stuff/
-src/Cli.js
+Cli.js
 .coverage
 E2eTest_result.elm
+docs

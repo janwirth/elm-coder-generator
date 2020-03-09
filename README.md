@@ -15,7 +15,7 @@ Demo using the kakoune editor piping to the CLI.
 
 ## Installation
 ```
-npm i -g decgen
+npm i -g elm-coder-generator
 ```
 
 
@@ -25,32 +25,32 @@ Generate decoders for Example.elm (available in this repo):
 *It grabs and generates code only for type definitions inside these annotations.*
 
 ```
-decgen Example.elm
+elm-coder-generator Example.elm
 ```
 
-Or pipe to `decgen`:
+Or pipe to `elm-coder-generator`:
 ```sh
-echo '-- [decgen-start]\n type X = Int\n-- [decgen-end]' | decgen 
+echo '-- [generator-start]\n type X = Int\n-- [generator-end]' | elm-coder-generator 
 ```
 output
 ```elm
--- [decgen-start]
+-- [generator-start]
  type X = Int
 
--- [decgen-generated-start] -- DO NOT MODIFY or remove this line
+-- [elm-generator-start] -- DO NOT MODIFY or remove this line
 decodeX =
    Decode.int
 
 encodeX a =
    Encode.int a 
--- [decgen-end]
+-- [generator-end]
 ```
 
 ## API
 ```
-const generate = require('decgen')
+const generate = require('elm-coder-generator')
 
-generate('-- [decgen-start]\n type X = Int\n -- [decgen-end]').then(x => console.log(x))
+generate('-- [generator-start]\n type X = Int\n -- [generator-end]').then(x => console.log(x))
 
 // -> decodeX =
 // ->    Decode.int
@@ -64,9 +64,9 @@ generate('-- [decgen-start]\n type X = Int\n -- [decgen-end]').then(x => console
 Clone the repo and build Cli.elm:
 
 ```
-$ git clone https://github.com/dkodaj/decgen
-$ cd decgen
-$ elm make src/Cli.elm --output src/Cli.js --optimize
+$ git clone https://github.com/franzskuffka/elm-coder-generator
+$ cd elm-coder-generator
+$ elm make src/Cli.elm --output elm-stuff/Cli.js --optimize
 ```
 
 ## Roadmap

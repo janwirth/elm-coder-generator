@@ -85,7 +85,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ (Generate.Type.nick a |> replaceColons)
+                            "encode" ++ (Generate.Type.identifier a |> replaceColons)
 
                         _ ->
                             "encode" ++ name
@@ -102,7 +102,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ Generate.Type.nick a
+                            "encode" ++ Generate.Type.identifier a
 
                         _ ->
                             "encode" ++ name
@@ -140,7 +140,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ (replaceColons <| Generate.Type.nick a)
+                            "encode" ++ (replaceColons <| Generate.Type.identifier a)
 
                         _ ->
                             "encode" ++ name
@@ -153,7 +153,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ Generate.Type.nick a
+                            "encode" ++ Generate.Type.identifier a
 
                         _ ->
                             "encode" ++ name
@@ -166,7 +166,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ Generate.Type.nick a
+                            "encode" ++ Generate.Type.identifier a
 
                         _ ->
                             "encode" ++ name
@@ -182,7 +182,7 @@ encoderHelp topLevel rawName a =
                 False ->
                     case name of
                         "" ->
-                            "encode" ++ Generate.Type.nick a
+                            "encode" ++ Generate.Type.identifier a
 
                         _ ->
                             "encode" ++ name

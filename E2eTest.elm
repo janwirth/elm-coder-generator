@@ -4,11 +4,11 @@ import Html exposing (text)
 
 main = text "Success!"
 
--- [decgen-start]
+-- [generator-start]
 type Id = Id Int
 type Dict_ a = Dict_ (Dict.Dict Int a)
 
--- [decgen-generated-start] -- DO NOT MODIFY or remove this line
+-- [generator-generated-start] -- DO NOT MODIFY or remove this line
 decodeDictInt_ParamA_ decodeA =
    let
       decodeDictInt_ParamA_Tuple =
@@ -39,4 +39,4 @@ encodeDict_ encodeA (Dict_ a1) =
 
 encodeId (Id a1) =
    Encode.int a1 
--- [decgen-end]
+-- [generator-end]
