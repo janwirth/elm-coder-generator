@@ -15,7 +15,7 @@ async function processAnnotated (code) {
     var result;
     while((result = reg.exec(code)) !== null) {
         let transformedAnnotation = await transformAnnotation(result[0])
-        transformed = transformed.replace(result[0], transformedAnnotation)
+        transformed = transformed.replace(result[0] + "\n", transformedAnnotation)
         // doSomethingWith(result);
     }
     return transformed
@@ -39,7 +39,8 @@ async function transformAnnotation (annotatedSection) {
     }
 
     const generated = await makeCoders(input)
-    const generatedSection = `\n-- [generator-generated-start] -- DO NOT MODIFY or remove this line\n${generated}`
+    const generatedSection =
+        `\n-- [generator-generated-start] -- DO NOT MODIFY or remove this line\n${generated}`
     // replace the content
     // $1 and $2 are start markers and input types
     // $3 is end marker

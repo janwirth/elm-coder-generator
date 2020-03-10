@@ -1,6 +1,9 @@
 module E2eTest exposing (..)
 {-| A module that should not change at all when running the generator over it -}
 import Html exposing (text)
+import Dict
+import Json.Decode as Decode
+import Json.Encode as Encode
 
 main = text "Success!"
 
@@ -35,7 +38,7 @@ encodeDictInt_ParamA_ encodeA a =
       (Encode.list encodeDictInt_ParamA_Tuple) (Dict.toList a)
 
 encodeDict_ encodeA (Dict_ a1) =
-   encodeDictInt_ParamA_ (encodeA a1)
+   encodeDictInt_ParamA_ encodeA a1
 
 encodeId (Id a1) =
    Encode.int a1 

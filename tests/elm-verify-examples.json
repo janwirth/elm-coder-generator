@@ -1,4 +1,12 @@
 {
   "root": "../src",
-  "tests": ["ParseType", "Generate", "Graph", "Destructuring", "AnonymousTypes"]
+  "tests":
+    [ "ParseType"
+    , "Generate"
+    , "Graph"
+    , "Destructuring"
+    , "AnonymousTypes"
+    , "Decoder"
+    , "Encoder"
+    ]
 }

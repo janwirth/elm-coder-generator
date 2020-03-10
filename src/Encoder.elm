@@ -1,11 +1,14 @@
-module Encoder exposing (encoder)
+module Encoder exposing
+    ( encoder
+    -- exposed for testing only
+    , encoderHelp
+    )
 
 import Destructuring exposing (bracketCommas, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (filter, indexedMap, length, map, map2, range)
 import Generate.Type
 import String exposing (contains, dropRight, join, split)
 import Types exposing (Type(..), TypeDef, coreTypeForEncoding)
-
 
 encoder : TypeDef -> List String
 encoder typeDef =
@@ -52,6 +55,16 @@ makeParameters def =
     |> List.map (\param -> " encode" ++ capitalize param)
     |> String.join " "
 
+{-|
+    import Types exposing (..)
+    theType = (TypeDict (TypeInt, TypeParameter "a"))
+
+    encoderHelp False "" theType
+    --> "encodeDictInt_ParamA_ encodeA"
+
+    encoderHelp True "Dict_" (TypeOpaque ("Dict_",[TypeDict (TypeInt,TypeParameter "a")]))
+    --> "encodeDictInt_ParamA_ encodeA a1"
+-}
 encoderHelp : Bool -> String -> Type -> String
 encoderHelp topLevel rawName a =
     let
@@ -83,12 +96,19 @@ encoderHelp topLevel rawName a =
                     encoderDict name ( b, c )
 
                 False ->
-                    case name of
-                        "" ->
-                            "encode" ++ (Generate.Type.identifier a |> replaceColons)
+                    let
+                        name_ =
+                            case name of
+                                "" ->
+                                    "encode" ++ (Generate.Type.identifier a |> replaceColons)
 
-                        _ ->
-                            "encode" ++ name
+                                _ ->
+                                    "encode" ++ name
+                    in
+                        case c of
+                            TypeParameter param -> name_ ++ " encode" ++ capitalize param
+                            _ -> name_
+
 
         TypeError b ->
             maybeAppend <| b
@@ -148,7 +168,7 @@ encoderHelp topLevel rawName a =
         TypeOpaque b ->
             case topLevel of
                 True ->
-                    encoderProduct True False b
+                    encoderOpaque True False b
 
                 False ->
                     case name of
@@ -236,8 +256,8 @@ encoderMaybe x =
         ]
 
 
-encoderProduct : Bool -> Bool -> ( String, List Type ) -> String
-encoderProduct productType addConstructor ( constructor, subTypes ) =
+encoderOpaque : Bool -> Bool -> ( String, List Type ) -> String
+encoderOpaque productType addConstructor ( constructor, subTypes ) =
     let
         fieldDefs =
             map2 (\a b -> ( a, b )) vars subTypes
@@ -258,7 +278,7 @@ encoderProduct productType addConstructor ( constructor, subTypes ) =
                     fullEncoder
 
                 False ->
-                    bracketIfSpaced <| encoderHelp False "" a
+                     encoderHelp False "" a
 
         constrEncode =
             case addConstructor of
@@ -286,7 +306,7 @@ encoderProduct productType addConstructor ( constructor, subTypes ) =
         x :: [] ->
             case productType of
                 True ->
-                    subEncoder x ++ " a1"
+                    (subEncoder x) ++ " a1"
 
                 False ->
                     defaultEncoder
@@ -343,7 +363,7 @@ encoderUnionSimple : List ( String, List Type ) -> String
 encoderUnionSimple xs =
     let
         encodeConstructor ( a, ys ) =
-            tab 1 (a ++ " ->" ++ "\n") ++ tabLines 2 (encoderProduct False False ( a, ys ))
+            tab 1 (a ++ " ->" ++ "\n") ++ tabLines 2 (encoderOpaque False False ( a, ys ))
     in
     join "\n" <|
         [ "case a of" ]
@@ -357,7 +377,7 @@ encoderUnionComplex xs =
             join " " <| map var <| range 1 (length ys)
 
         encodeConstructor ( a, ys ) =
-            tab 1 (a ++ " " ++ varList ys ++ "->" ++ "\n") ++ tabLines 2 (encoderProduct False True ( a, ys ))
+            tab 1 (a ++ " " ++ varList ys ++ "->" ++ "\n") ++ tabLines 2 (encoderOpaque False True ( a, ys ))
     in
     join "\n" <|
         [ "case a of" ]

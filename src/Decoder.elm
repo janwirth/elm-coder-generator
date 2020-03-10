@@ -1,4 +1,9 @@
-module Decoder exposing (decoder)
+module Decoder exposing
+    ( decoder
+    -- exposed for testing only
+    , decoderOpaque
+    , decoderHelp
+    )
 
 import Destructuring exposing (bracket, bracketIfSpaced, capitalize, quote, replaceColons, tab, tabLines)
 import List exposing (concat, filter, indexedMap, length, map, map2, range)
@@ -38,6 +43,30 @@ makeParameters def =
     |> List.map (\param -> " decode" ++ capitalize param)
     |> String.join " "
 
+{-
+    import Types
+    decoderHelp True --> ""
+-}
+
+{-|
+
+    import Types exposing (Type(..))
+
+    decoderHelp False "" (TypeDict (TypeInt,TypeParameter "a")) Types.Pipeline
+    --> """decodeDictInt_ParamA_ decodeA"""
+
+    decoderHelp True "Dict_" (TypeDict (TypeInt,TypeParameter "para")) Types.Pipeline
+    --> """let
+    -->      decodeDict_Tuple =
+    -->         Decode.map2
+    -->            (\\a1 a2 -> (a1, a2))
+    -->               ( Decode.field \"A1\" Decode.int )
+    -->               ( Decode.field \"A2\" decodePara )
+    -->   in
+    -->      Decode.map Dict.fromList (Decode.list decodeDict_Tuple)"""
+    -->         |> String.replace "                  " "" -- adjust to formatting
+
+-}
 decoderHelp : Bool -> String -> Type -> ExtraPackage -> String
 decoderHelp topLevel rawName a extra =
     let
@@ -62,7 +91,6 @@ decoderHelp topLevel rawName a extra =
                     let
                         subDecoderName =
                             "decode" ++ name ++ "Tuple"
-
                         subDecoder =
                             decoderHelp True "" (TypeTuple [ b, c ]) extra
                     in
@@ -75,12 +103,16 @@ decoderHelp topLevel rawName a extra =
                         ]
 
                 False ->
-                    case name of
-                        "" ->
-                            "decode" ++ (Generate.Type.identifier a |> replaceColons)
-
-                        _ ->
-                            "decode" ++ name
+                    let
+                        name_ =
+                            replaceColons <| case name of
+                                "" -> Generate.Type.identifier a
+                                _ -> name
+                    in
+                    case c of
+                        TypeParameter parameter ->
+                            "decode" ++ name_ ++ " decode" ++ capitalize parameter ++ ""
+                        _ -> "decode" ++ name_
 
         TypeError b ->
             b
@@ -135,12 +167,12 @@ decoderHelp topLevel rawName a extra =
         TypeOpaque b ->
             case topLevel of
                 True ->
-                    decoderProduct True b extra
+                    decoderOpaque True b extra
 
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.identifier a
+                                "decode" ++ Generate.Type.identifier a
 
                         _ ->
                             "decode" ++ name
@@ -200,8 +232,16 @@ decoderHelp topLevel rawName a extra =
                             "decode" ++ name
 
 
-decoderProduct : Bool -> ( String, List Type ) -> ExtraPackage -> String
-decoderProduct productType ( constructor, subTypes ) extra =
+{-|
+
+    import Types exposing (Type(..))
+
+    decoderOpaque True ("Dict_", [TypeDict (TypeInt,TypeParameter "a")]) Types.Pipeline
+    --> "Decode.map Dict_ (decodeDictInt_ParamA_ decodeA)"
+
+-}
+decoderOpaque : Bool -> ( String, List Type ) -> ExtraPackage -> String
+decoderOpaque productType ( constructor, subTypes ) extra =
     let
         fieldDecode ( a, b ) =
             field varNum (quote <| capitalize a) (subDecoder b) extra
@@ -210,7 +250,9 @@ decoderProduct productType ( constructor, subTypes ) extra =
             map2 (\a b -> ( a, b )) vars subTypes
 
         subDecoder a =
-            bracketIfSpaced <| decoderHelp False "" a extra
+            a
+            |> \a_ -> decoderHelp False "" a_ extra
+            |> bracketIfSpaced
 
         vars =
             map var <| range 1 varNum
@@ -338,7 +380,7 @@ decoderUnionComplex : String -> List ( String, List Type ) -> ExtraPackage -> St
 decoderUnionComplex name xs extra =
     let
         decodeConstructor ( constructor, fields ) =
-            quote constructor ++ " ->\n" ++ (tabLines 1 <| decoderProduct False ( constructor, fields ) extra)
+            quote constructor ++ " ->\n" ++ (tabLines 1 <| decoderOpaque False ( constructor, fields ) extra)
     in
     join "\n" <|
         [ tab 1 <| "Decode.field \"Constructor\" Decode.string |> Decode.andThen decode" ++ replaceColons name ++ "Help" ++ "\n"

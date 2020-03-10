@@ -1,7 +1,7 @@
 module Generate.Type exposing (identifier, descriptor, aliasDefinitions )
 import Types exposing (TypeDef, Type(..))
 import Destructuring exposing 
-    ( civilize, bracketIfSpaced)
+    ( civilize, bracketIfSpaced, capitalize)
 
 aliasDefinitions : List TypeDef -> List (List String)
 aliasDefinitions types =
@@ -24,12 +24,12 @@ aliasDefinitions types =
 -- @TODO: put this in a separate module
 {-| Derive a valid elm identifier from a type definition -}
 identifier : Type -> String
-identifier a =
+identifier theType =
     let
         tag prefix =
-            prefix ++ (civilize <| descriptor False a)
+            prefix ++ (civilize <| descriptor False theType)
     in
-    case a of
+    case theType of
         TypeExtendedRecord _ ->
             tag "Record"
 
@@ -55,7 +55,7 @@ descriptor bracketIt a =
                 x
     in
     case a of
-        TypeParameter parameter -> "Param " ++ parameter
+        TypeParameter parameter -> "Param " ++ capitalize parameter
         TypeArray b ->
             wrap <| "Array " ++ descriptor True b
 
