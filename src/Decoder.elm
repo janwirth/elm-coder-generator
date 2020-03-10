@@ -141,8 +141,8 @@ decoderHelp topLevel rawName a extra =
         TypeFloat ->
             "Decode.float"
 
-        TypeCustom importedTypeReference ->
-            case String.split "." importedTypeReference |> List.reverse of
+        TypeCustom importedTypeReference parameters ->
+            case String.split "." (importedTypeReference) |> List.reverse of
                 typeName :: reversedPath ->
                     let
                         path =

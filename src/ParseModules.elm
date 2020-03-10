@@ -18,8 +18,7 @@ type alias Module =
 moduleRegex =
     "\\s*(?:port\\s+)?module\\s+([\\w|_]+)\\s+exposing\\s+\\((.+)\\)\\s*(?:\\w|$)"
 
-
--- turns source code text into Module record
+{-| turn  source code text into Module record-}
 parseModule : Bool -> String -> Maybe Module
 parseModule encoding source =
     let
@@ -37,7 +36,15 @@ parseModule encoding source =
         _ ->
             Nothing
 
--- turns list of source codes into a list of all types that need encoding/decoding
+
+{-| Parse an entire module or a part of it
+turn list of source codes into a list of all types that need encoding/decoding
+
+    import Types exposing (..)
+
+    parseAll False ["type alias Downloads = Some.Special.Dict_ Download"]
+    --> [{name =  "Downloads", theType = TypeCustom "Some.Special.Dict_" [TypeCustom "Download" []]}]
+-}
 parseAll : Bool -> List String -> List TypeDef
 parseAll encoding sources =
     -- "encoding" signals whether we'll need encoders or decoders
@@ -87,7 +94,7 @@ pullImportedHelp thisType homeModule modulePool pulled =
             pullImportedHelp a homeModule modulePool pulled
     in
     case thisType of
-        TypeCustom name ->
+        TypeCustom name params ->
             case define name homeModule modulePool of
                 Just (newType, newHome) ->
                     pullImportedHelp 
@@ -97,7 +104,7 @@ pullImportedHelp thisType homeModule modulePool pulled =
                         ( { name = name, theType = newType } :: pulled )
                     
                 Nothing ->
-                    pulled
+                    (List.map recurseOnHelp params  |> List.concat) ++ pulled
                     
         TypeArray a ->
             (recurseOnHelp a) ++ pulled

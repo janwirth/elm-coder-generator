@@ -9,7 +9,7 @@ type Type
     | TypeExtendedRecord (List TypeDef) --record defined using an extensible one
     | TypeExtensible (List TypeDef) --extensible record
     | TypeFloat
-    | TypeCustom String --type not core and not defined in the input
+    | TypeCustom String (List Type) --type not core and not defined in the input
     | TypeInt
     | TypeList Type
     | TypeMaybe Type
@@ -139,7 +139,7 @@ getParameters theType =
         TypeExtendedRecord t -> List.map (.theType >> getParameters) t |> List.concat
         TypeExtensible t -> List.map (.theType >> getParameters) t |> List.concat
         TypeFloat -> []
-        TypeCustom _ -> []
+        TypeCustom _ parameter -> List.map getParameters parameter |> List.concat
         TypeInt -> []
         TypeMaybe a -> getParameters a
         TypeRecord fields -> List.map (.theType >> getParameters) fields |> List.concat

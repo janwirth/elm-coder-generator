@@ -204,7 +204,7 @@ dependencies typeDef =
                   TypeError _ -> []
                   TypeExtendedRecord _ -> [] --record defined using an extensible one
                   TypeExtensible _ -> [] --extensible record
-                  TypeCustom t -> [t] --type not core and not defined in the input
+                  TypeCustom t e -> t :: (List.map derive e |> List.concat) --type not core and not defined in the input
 
                   TypeArray t -> derive t
                   TypeDict (t1, t2) -> derive t1 ++ derive t2

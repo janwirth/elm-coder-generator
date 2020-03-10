@@ -92,8 +92,8 @@ descriptor bracketIt a =
         TypeFloat ->
             "Float"        
         
-        TypeCustom b ->
-            b
+        TypeCustom b params ->
+            b ++ (String.join "_" (List.map (descriptor False) params))
 
         TypeInt ->
             "Int"

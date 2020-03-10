@@ -32,6 +32,9 @@ anonymous typeDef =
     import Types exposing (..)
 
     anonymousHelp True TypeBool [] --> []
+
+    anonymousHelp True (TypeTuple [TypeCustom "C" [TypeInt]]) []
+    --> []
 -}
 anonymousHelp : Bool -> Type -> List Type -> List Type
 anonymousHelp topLevel a xs =
@@ -76,8 +79,8 @@ anonymousHelp topLevel a xs =
         TypeFloat ->
             xs            
         
-        TypeCustom b ->
-            xs
+        TypeCustom b c ->
+            xs -- @@TODO - extend her
 
         TypeInt ->
             xs

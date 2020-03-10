@@ -8,6 +8,8 @@ module ParseType exposing
     -- exposed for testing only
     , typeOf
     , extractHelp
+    , parseOthers
+    , grabRawType
     )
     
 import AnonymousTypes exposing (grabAnonymousTypes)
@@ -32,7 +34,10 @@ import Types exposing (RawType, Type(..), TypeDef)
 import List.Extra
 import Generate.Type
 import Dict
-import Graph
+import GraphTools
+import Parser exposing (Parser, (|=), (|.))
+import Set
+import Elm.Compiler
 
 
 anonymousType : Type -> TypeDef
@@ -61,12 +66,12 @@ extractAllWithDefs encoding txt =
     let
         ( declared, anonymous ) =
             extractHelp encoding txt
-        adjacencies : List (Graph.VertexAndAdjacencies String)
+        adjacencies : List (GraphTools.VertexAndAdjacencies String)
         adjacencies =
             declared ++ anonymous
-            |> List.map (\type_ -> (type_.name , Graph.dependencies type_) )
+            |> List.map (\type_ -> (type_.name , GraphTools.dependencies type_) )
 
-        toBreak = Graph.breakingVertices adjacencies
+        toBreak = GraphTools.breakingVertices adjacencies
 
         nonEmptyRecord a =
             Types.isRecord a && not (Types.isEmptyRecord a)
@@ -96,7 +101,7 @@ extractBasic encoding txt =
     import Types exposing (RawType, Type(..), TypeDef)
 
     extractHelp True "type Either a b = Left a Int Custom | Right b"
-    --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeParameter "a", TypeInt,TypeCustom "Custom"]),("Right",[TypeParameter "b"])] }],[])
+    --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeParameter "a", TypeInt,TypeCustom "Custom" []]),("Right",[TypeParameter "b"])] }],[])
 
     extractHelp True "type Either a b = Left a | Right b"
     --> ([{ name = "Either", theType = TypeUnion [("Left",[TypeParameter "a"]),("Right",[TypeParameter "b"])] }],[])
@@ -117,8 +122,13 @@ extractHelp encoding txt =
 
 {-|
 
-    grabTypeDefs : "type alias B = Int"
-    --> []
+    import Types exposing (..)
+
+    grabTypeDefs "type alias B = Int"
+    --> [{ name = "B", theType = TypeInt }]
+
+    grabTypeDefs "type alias Downloads = Some.Special.Dict_ Download"
+    --> [{ name = "Downloads", theType = TypeCustom "Some.Special.Dict_" [TypeCustom "Download" []] }]
 
 -}
 grabTypeDefs : String -> List TypeDef
@@ -133,6 +143,12 @@ grabTypeDefs txt =
 
 
 
+{-|
+    import Types exposing (..)
+
+    grabRawType [Just "Downloads ",Just " Some.Special.Dict_ Download"]
+    --> Just {extensible = False, name = "Downloads", def = "Some.Special.Dict_ Download" }
+-}
 grabRawType : List (Maybe String) -> Maybe RawType
 grabRawType submatches =
     case submatches of
@@ -158,20 +174,83 @@ grabRawType submatches =
 
     grabRawTypes "type Either a b = Left a | Right b"
     --> [{ def = "Left a | Right b", extensible = True, name = "Either" }]
+
+    grabRawTypes "type alias Uploads Some.Special.Dict_ Upload"
+    --> [{extensible = False, name = "Uploads", def = "Some.Special.Dict_ Upload" }]
 -}
 grabRawTypes : String -> List RawType
 grabRawTypes txt =
     removeStringLiterals txt
     |> decomment
+    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> regex typeRegex
+    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> map .submatches
+    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> map grabRawType
     |> removeNothings
 
 
 typeRegex =
-    "type\\s+(?:alias\\s+)?([\\w_]+[\\w_\\s]*)=([\\w(){},|.:_ \\r\\n]+)(?=(?:\\r\\w|\\n\\w)|$)"
+    "type\\s+(?:alias\\s+)?([\\w_]+[\\w_\\s]*)=([\\w(){},|\\..:_ \\r\\n]+)(?=(?:\\r\\w|\\n\\w)|$)"
 
+
+
+{- parse a type definition
+
+import Types exposing (RawType, Type(..), TypeDef)
+
+grabRawTypes_ "type Either a b = Left a | Right b"
+--> [{ def = "Left a | Right b", extensible = True, name = "Either" }]
+
+grabRawTypes_ "type alias Uploads Some.Special.Dict_ Upload"
+--> [{extensible = False, name = "Uploads", def = "Some.Special.Dict_ Upload" }]
+grabRawTypes_ : String -> List RawType
+grabRawTypes_ str =
+    let
+        typeName : Parser String
+        typeName =
+          Parser.variable
+            { start = Char.isUpper
+            , inner = \c -> Char.isAlphaNum c || c == '_'
+            , reserved = Set.fromList [ "let", "in", "case", "of" ]
+            }
+
+        processAlias name params body =
+            Debug.log "res" (name, params, body)
+
+        typeParameterName : Parser String
+        typeParameterName =
+          Parser.variable
+            { start = Char.isLower
+            , inner = \c -> Char.isAlphaNum c || c == '_'
+            , reserved = Set.fromList [ "let", "in", "case", "of" ]
+            }
+        parameters =
+            Parser.sequence
+            { start = ""
+            , separator = " "
+            , end = " "
+            , spaces = Parser.spaces
+            , item = typeParameterName
+            , trailing = Parser.Mandatory
+            }
+        p : Parser.Parser (List TypeDef)
+        p =
+            Parser.succeed processAlias
+            |. Parser.keyword "type"
+            |. Parser.spaces
+            |= Parser.keyword "alias"
+            |. Parser.spaces
+            |= typeName
+            |= parameters
+            |. Parser.keyword "="
+            |. Parser.spaces
+            |= Parse
+    in
+        Parser.run (Parser.loop p) str
+
+-}
 
 
 --== Recognize types ==--
@@ -183,7 +262,7 @@ typeRegex =
 
     typeOf False "List String" --> TypeList TypeString
     typeOf False "MyType | String" --> TypeUnion [("MyType",[]),("String",[])]
-    typeOf False "MyType" --> TypeCustom "MyType"
+    typeOf False "MyType" --> TypeCustom "MyType" []
     typeOf False "String" --> TypeString
     typeOf False "{age : Int}" --> TypeRecord [{ name = "age", theType = TypeInt }]
     typeOf True "{generic : generic}" --> TypeExtensible [{ name = "generic", theType = TypeParameter "generic" }]
@@ -192,10 +271,6 @@ typeRegex =
 -}
 typeOf : Bool -> String -> Type
 typeOf extensible def =
-    let
-        subType x =
-            typeOf False x
-    in
     case detuple def of
         a :: bs ->
             TypeTuple <| map subType (a :: bs)
@@ -266,37 +341,56 @@ typeOf extensible def =
                                 "String" ->
                                     TypeString
 
-                                _ ->
-                                    let
-                                        constructor ( x, y ) =
-                                            case y of
-                                                [ "" ] ->
-                                                    ( x, [] )
+                                _ -> parseOthers def
 
-                                                _ ->
-                                                    ( x, map subType y )
-                                    in
-                                    case deunion def of
-                                        ( name, y ) :: [] ->
-                                            case y of
-                                                [ "" ] ->
-                                                    let
-                                                        isParameter =
-                                                            String.uncons
-                                                            >> Maybe.map (Tuple.first >> Char.isUpper)
-                                                            >> Maybe.withDefault False
-                                                    in
-                                                        case isParameter name of
-                                                            True -> TypeCustom name
-                                                            False -> TypeParameter name
-                                                _ ->
-                                                    TypeOpaque ( name, map subType y )
+subType x =
+    typeOf False x
 
-                                        c :: ds ->
-                                            TypeUnion <| map constructor (c :: ds)
+{-|
+    import Types exposing (..)
 
-                                        [] ->
-                                            TypeError "Union type conversion error: empty"
+    parseOthers "Some.Special.Dict_ Download"
+    --> TypeCustom "Some.Special.Dict_" [TypeCustom "Download" []]
+-}
+parseOthers : String -> Type
+parseOthers def =
+    let
+        constructor ( x, y ) =
+            case y of
+                [ "" ] ->
+                    ( x, [] )
+
+                _ ->
+                    ( x, map subType y )
+    in
+    case deunion def of
+        ( name, y ) :: [] ->
+            case y of
+                [ "" ] ->
+                    let
+                        isParameter =
+                            String.uncons
+                            >> Maybe.map (Tuple.first >> Char.isUpper)
+                            >> Maybe.withDefault False
+                    in
+                        case isParameter name of
+                            True -> TypeCustom name []
+                            False -> TypeParameter name
+                _ ->
+                    let
+                        isImported = String.contains "." name
+                    in
+                        case isImported of
+                            True ->
+                                TypeCustom name (map subType y)
+                            False ->
+                                TypeOpaque ( name, map subType y )
+
+        c :: ds ->
+            TypeUnion <| map constructor (c :: ds)
+
+        [] ->
+            TypeError "Union type conversion error: empty"
 
 
 --== Extensible records ==--
@@ -345,15 +439,15 @@ detectExtendedRecordHelp declaredTypes fieldsSoFar input =
         TypeMaybe ofType ->
             TypeMaybe (lookAt ofType)
 
-        TypeOpaque ( constructor, [ subType ] ) ->
+        TypeOpaque ( constructor, [ subType_ ] ) ->
             case extensiblesFor constructor of
                 Just extensibles ->
-                    case subType of
+                    case subType_ of
                         TypeRecord newFields ->
                             TypeExtendedRecord (fieldsSoFar ++ map lookInto (extensibles ++ newFields))
 
                         TypeOpaque _ ->
-                            recursion (fieldsSoFar ++ extensibles) subType
+                            recursion (fieldsSoFar ++ extensibles) subType_
 
                         _ ->
                             input

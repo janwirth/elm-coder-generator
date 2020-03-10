@@ -133,7 +133,7 @@ encoderHelp topLevel rawName a =
         TypeFloat ->
             maybeAppend <| "Encode.float"
 
-        TypeCustom importedTypeReference ->
+        TypeCustom importedTypeReference parameters ->
             case String.split "." importedTypeReference |> List.reverse of
                 typeName :: reversedPath ->
                     let

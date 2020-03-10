@@ -2,6 +2,7 @@
   "root": "../src",
   "tests":
     [ "ParseType"
+    , "ParseModules"
     , "Generate"
     , "Graph"
     , "Destructuring"

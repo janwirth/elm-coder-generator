@@ -172,6 +172,15 @@ encodersWithImports sources =
     -->         |> String.replace "                    " "" -- adjust to formatting
     -->         |> String.replace "                   " "" -- adjust to formatting
 
+    both Pipeline "type alias Downloads = Some.Special.Dict_ Download"
+    --> """decodeDownloads =
+    -->        Some.Special.decodeDict_ decodeDownload\n
+    -->     encodeDownloads a1 =
+    -->         Some.Special.encodeDict_ encodeDownload a1"""
+    -->         |> String.replace "                    " "" -- adjust to formatting
+    -->         |> String.replace "                   " "" -- adjust to formatting
+
+
     both Pipeline "type alias Rects = {items : Dict.Dict Int Rectangle.Rectangle}"
 
     --> """decodeDictIntRectangle_Rectangle =
