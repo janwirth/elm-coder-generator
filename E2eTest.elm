@@ -10,6 +10,8 @@ main = text "Success!"
 -- [generator-start]
 type Id = Id Int
 type Dict_ a = Dict_ (Dict.Dict Int a)
+type M = Maybe Int
+
 
 -- [generator-generated-start] -- DO NOT MODIFY or remove this line
 decodeDictInt_ParamA_ decodeA =
@@ -28,6 +30,9 @@ decodeDict_ decodeA =
 decodeId =
    Decode.map Id Decode.int
 
+decodeM =
+   Decode.maybe Decode.int
+
 encodeDictInt_ParamA_ encodeA a =
    let
       encodeDictInt_ParamA_Tuple (a1,a2) =
@@ -41,5 +46,12 @@ encodeDict_ encodeA (Dict_ a1) =
    encodeDictInt_ParamA_ encodeA a1
 
 encodeId (Id a1) =
-   Encode.int a1 
+   Encode.int a1
+
+encodeM a =
+   case a of
+      Just b->
+         Encode.int b
+      Nothing->
+         Encode.null 
 -- [generator-end]

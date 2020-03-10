@@ -11,8 +11,10 @@ test:
 	make e2e
 tdd:
 	nodemon make -w src -w tests/* -w E2eTest.elm -e elm,js --exec "make test || exit 1"
+tdd-e2e:
+	nodemon make -w src -w tests/* -w E2eTest.elm -e elm,js --exec "make e2e || exit 1"
 e2e:
-	rm E2eTest_result.elm
+	rm E2eTest_result.elm || exit 0
 	make dev
 	cat ./E2eTest.elm | elm-coder-generator > E2eTest_result.elm
 	diff -u E2eTest.elm E2eTest_result.elm | colordiff

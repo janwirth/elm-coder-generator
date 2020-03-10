@@ -44,7 +44,8 @@ async function transformAnnotation (annotatedSection) {
     // replace the content
     // $1 and $2 are start markers and input types
     // $3 is end marker
-    transformed = annotatedSection.replace(annotationContentGrabber, `$1${input}\n${generatedSection} $3`)
+    const transformed =
+        annotatedSection.replace(annotationContentGrabber, `$1${input}\n${generatedSection} $3`)
     return transformed
 }
 

@@ -210,7 +210,7 @@ dependencies typeDef =
                   TypeDict (t1, t2) -> derive t1 ++ derive t2
                   TypeList listType ->
                       derive listType
-                  TypeMaybe t -> derive theType
+                  TypeMaybe t -> derive t
                   TypeOpaque (_, t) -> List.map derive t
                     |> List.concat
                   TypeRecord types ->
