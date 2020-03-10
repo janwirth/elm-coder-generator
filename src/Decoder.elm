@@ -142,17 +142,31 @@ decoderHelp topLevel rawName a extra =
             "Decode.float"
 
         TypeCustom importedTypeReference parameters ->
-            case String.split "." (importedTypeReference) |> List.reverse of
-                typeName :: reversedPath ->
-                    let
-                        path =
-                            case reversedPath of
-                                [] -> ""
-                                _ -> String.join "." (List.reverse reversedPath) ++ "."
-                    in
-                    path ++ "decode" ++ typeName
-                _ ->
-                    "decode" ++ name
+            let
+                call =
+                    case String.split "." (importedTypeReference) |> List.reverse of
+                        typeName :: reversedPath ->
+                            let
+                                path =
+                                    case reversedPath of
+                                        [] -> ""
+                                        _ -> String.join "." (List.reverse reversedPath) ++ "."
+                            in
+                            path ++ "decode" ++ typeName
+                        _ ->
+                            "decode" ++ name
+            in
+                case parameters of
+                    [] -> call
+                    params ->
+                        let
+                            renderedParams =
+                                params
+                                |> List.map (\p -> decoderHelp False "" p Pipeline)
+                                |> String.join " "
+                        in
+                            call ++ " " ++ renderedParams
+                            |> if topLevel then identity else bracketIfSpaced
 
 
         TypeInt ->

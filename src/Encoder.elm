@@ -134,17 +134,29 @@ encoderHelp topLevel rawName a =
             maybeAppend <| "Encode.float"
 
         TypeCustom importedTypeReference parameters ->
-            case String.split "." importedTypeReference |> List.reverse of
-                typeName :: reversedPath ->
-                    let
-                        path =
-                            case reversedPath of
-                                [] -> ""
-                                _ -> String.join "." (List.reverse reversedPath) ++ "."
-                    in
-                    path ++ "encode" ++ typeName ++ (if topLevel then " a" else "")
-                _ ->
-                    "encode" ++ name ++ " a ="
+            let
+                call = case String.split "." importedTypeReference |> List.reverse of
+                    typeName :: reversedPath ->
+                        let
+                            path =
+                                case reversedPath of
+                                    [] -> ""
+                                    _ -> String.join "." (List.reverse reversedPath) ++ "."
+                        in
+                        path ++ "encode" ++ typeName
+                    _ ->
+                        "(Debug.todo \"[generator-problem] Could not parse type [generator-problem-end]\")"
+            in case parameters of
+                    [] -> call ++ (if topLevel then " a" else "")
+                    params ->
+                        let
+                            renderedParams =
+                                params
+                                |> List.map (\p -> encoderHelp False "" p)
+                                |> String.join " "
+                        in
+                            call ++ " " ++ renderedParams ++ (if topLevel then " a" else "")
+                            |> if topLevel then identity else bracketIfSpaced
 
         TypeInt ->
             maybeAppend <| "Encode.int"

@@ -34,10 +34,9 @@ import Types exposing (RawType, Type(..), TypeDef)
 import List.Extra
 import Generate.Type
 import Dict
-import GraphTools
+import Graph
 import Parser exposing (Parser, (|=), (|.))
 import Set
-import Elm.Compiler
 
 
 anonymousType : Type -> TypeDef
@@ -50,6 +49,13 @@ anonymousTypes encoding typeList =
     map anonymousType <| grabAnonymousTypes encoding typeList
 
 
+
+{-|
+    import Types exposing (..)
+
+    extractAll True "type alias Downloads = Some.Special.Dict_ Download"
+    --> [{ name = "Downloads", theType = TypeCustom "Some.Special.Dict_" [TypeCustom "Download" []] }]
+-}
 extractAll : Bool -> String -> List TypeDef
 extractAll encoding txt =
     let            
@@ -66,12 +72,12 @@ extractAllWithDefs encoding txt =
     let
         ( declared, anonymous ) =
             extractHelp encoding txt
-        adjacencies : List (GraphTools.VertexAndAdjacencies String)
+        adjacencies : List (Graph.VertexAndAdjacencies String)
         adjacencies =
             declared ++ anonymous
-            |> List.map (\type_ -> (type_.name , GraphTools.dependencies type_) )
+            |> List.map (\type_ -> (type_.name , Graph.dependencies type_) )
 
-        toBreak = GraphTools.breakingVertices adjacencies
+        toBreak = Graph.breakingVertices adjacencies
 
         nonEmptyRecord a =
             Types.isRecord a && not (Types.isEmptyRecord a)
@@ -175,82 +181,21 @@ grabRawType submatches =
     grabRawTypes "type Either a b = Left a | Right b"
     --> [{ def = "Left a | Right b", extensible = True, name = "Either" }]
 
-    grabRawTypes "type alias Uploads Some.Special.Dict_ Upload"
+    grabRawTypes "type alias Uploads = Some.Special.Dict_ Upload"
     --> [{extensible = False, name = "Uploads", def = "Some.Special.Dict_ Upload" }]
 -}
 grabRawTypes : String -> List RawType
 grabRawTypes txt =
     removeStringLiterals txt
     |> decomment
-    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> regex typeRegex
-    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> map .submatches
-    |> (\str -> if String.contains "Upload" txt then Debug.log txt str else str)
     |> map grabRawType
     |> removeNothings
 
 
 typeRegex =
-    "type\\s+(?:alias\\s+)?([\\w_]+[\\w_\\s]*)=([\\w(){},|\\..:_ \\r\\n]+)(?=(?:\\r\\w|\\n\\w)|$)"
-
-
-
-{- parse a type definition
-
-import Types exposing (RawType, Type(..), TypeDef)
-
-grabRawTypes_ "type Either a b = Left a | Right b"
---> [{ def = "Left a | Right b", extensible = True, name = "Either" }]
-
-grabRawTypes_ "type alias Uploads Some.Special.Dict_ Upload"
---> [{extensible = False, name = "Uploads", def = "Some.Special.Dict_ Upload" }]
-grabRawTypes_ : String -> List RawType
-grabRawTypes_ str =
-    let
-        typeName : Parser String
-        typeName =
-          Parser.variable
-            { start = Char.isUpper
-            , inner = \c -> Char.isAlphaNum c || c == '_'
-            , reserved = Set.fromList [ "let", "in", "case", "of" ]
-            }
-
-        processAlias name params body =
-            Debug.log "res" (name, params, body)
-
-        typeParameterName : Parser String
-        typeParameterName =
-          Parser.variable
-            { start = Char.isLower
-            , inner = \c -> Char.isAlphaNum c || c == '_'
-            , reserved = Set.fromList [ "let", "in", "case", "of" ]
-            }
-        parameters =
-            Parser.sequence
-            { start = ""
-            , separator = " "
-            , end = " "
-            , spaces = Parser.spaces
-            , item = typeParameterName
-            , trailing = Parser.Mandatory
-            }
-        p : Parser.Parser (List TypeDef)
-        p =
-            Parser.succeed processAlias
-            |. Parser.keyword "type"
-            |. Parser.spaces
-            |= Parser.keyword "alias"
-            |. Parser.spaces
-            |= typeName
-            |= parameters
-            |. Parser.keyword "="
-            |. Parser.spaces
-            |= Parse
-    in
-        Parser.run (Parser.loop p) str
-
--}
+    "type\\s+(?:alias\\s+)?([\\w_]+[\\w_\\s]*)=([\\w(){},|\\.:_ \\r\\n]+)(?=(?:\\r\\w|\\n\\w)|$)"
 
 
 --== Recognize types ==--

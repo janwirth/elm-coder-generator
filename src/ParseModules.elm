@@ -23,7 +23,7 @@ parseModule : Bool -> String -> Maybe Module
 parseModule encoding source =
     let
         submatches = 
-            List.map .submatches <| regex moduleRegex source            
+            List.map .submatches <| regex moduleRegex source
     in
     case submatches of
         (Just name :: Just exposeStr :: _) :: _ ->
@@ -39,11 +39,6 @@ parseModule encoding source =
 
 {-| Parse an entire module or a part of it
 turn list of source codes into a list of all types that need encoding/decoding
-
-    import Types exposing (..)
-
-    parseAll False ["type alias Downloads = Some.Special.Dict_ Download"]
-    --> [{name =  "Downloads", theType = TypeCustom "Some.Special.Dict_" [TypeCustom "Download" []]}]
 -}
 parseAll : Bool -> List String -> List TypeDef
 parseAll encoding sources =
