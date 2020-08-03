@@ -16,7 +16,6 @@ async function processAnnotated (code) {
     while((result = reg.exec(code)) !== null) {
         let transformedAnnotation = await transformAnnotation(result[0])
         transformed = transformed.replace(result[0], transformedAnnotation)
-        // doSomethingWith(result);
     }
     return transformed
 }
