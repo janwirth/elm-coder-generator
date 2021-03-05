@@ -81,6 +81,8 @@ anonymousHelp topLevel a xs =
         
         TypeCustom b c ->
             xs -- @@TODO - extend her
+        TypeResult b c ->
+            xs -- @@TODO - extend her
 
         TypeInt ->
             xs

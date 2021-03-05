@@ -45,7 +45,7 @@ identifier theType =
 
 
 descriptor : Bool -> Type -> String
-descriptor bracketIt a =
+descriptor bracketIt kind =
     let
         wrap x =
             if bracketIt then
@@ -54,7 +54,7 @@ descriptor bracketIt a =
             else
                 x
     in
-    case a of
+    case kind of
         TypeParameter parameter -> "Param " ++ capitalize parameter
         TypeArray b ->
             wrap <| "Array " ++ descriptor True b
@@ -87,7 +87,7 @@ descriptor bracketIt a =
                 fields =
                     String.dropRight 2 <| String.concat <| List.map fieldString b
             in
-            "{ a | " ++ fields ++ "}"
+            "{ kind | " ++ fields ++ "}"
 
         TypeFloat ->
             "Float"        
@@ -103,6 +103,9 @@ descriptor bracketIt a =
 
         TypeMaybe b ->
             wrap <| "Maybe " ++ descriptor True b
+
+        TypeResult a b ->
+            wrap <| "Result " ++ descriptor True a ++ descriptor True b
 
         TypeOpaque ( b, c ) ->
             case c of

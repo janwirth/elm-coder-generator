@@ -158,6 +158,16 @@ encoderHelp topLevel rawName a =
                             call ++ " " ++ renderedParams ++ (if topLevel then " a" else "")
                             |> if topLevel then identity else bracketIfSpaced
 
+        TypeResult b c ->
+            let
+                t = TypeUnion [("Err",[b]),("Ok",[c])]
+            in
+            encoderHelp topLevel (case rawName of
+                "" -> Generate.Type.identifier a
+                _ -> rawName) t
+                
+
+
         TypeInt ->
             maybeAppend <| "Encode.int"
 
@@ -234,7 +244,7 @@ encoderHelp topLevel rawName a =
                                 typeStr =
                                     "{ " ++ (List.foldl folder "" <| map Tuple.first b) ++ " }"
                             in
-                            "Encoder parse error: unanymous union type: " ++ typeStr
+                            "Encoder parse error: ananymous union type: " ++ typeStr
 
                         _ ->
                             "encode" ++ name

@@ -29,6 +29,7 @@ type TypeExpression
 
     | TypeList Type
     | TypeMaybe Type
+    | TypeResult Type Type
     | TypeTuple (List Type)
 
     -- non Core.Basics

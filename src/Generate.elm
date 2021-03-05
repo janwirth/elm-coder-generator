@@ -116,6 +116,64 @@ encodersWithImports sources =
     -->         |> String.replace "                     " "" -- adjust to formatting
     -->         |> String.replace "                    " "" -- adjust to formatting
 
+    both Pipeline "type alias ResultExample = Result String Bool"
+    --> """decodeResultExample =
+    -->            Decode.field \"Constructor\" Decode.string |> Decode.andThen decodeResultExampleHelp
+    -->         
+    -->         decodeResultExampleHelp constructor =
+    -->            case constructor of
+    -->               \"Err\" ->
+    -->                  Decode.map
+    -->                     Err
+    -->                        ( Decode.field \"A1\" Decode.string )
+    -->               \"Ok\" ->
+    -->                  Decode.map
+    -->                     Ok
+    -->                        ( Decode.field \"A1\" Decode.bool )
+    -->               other->
+    -->                  Decode.fail <| \"Unknown constructor for type ResultExample: \" ++ other
+    -->      
+    -->      encodeResultExample a =
+    -->         case a of
+    -->            Err a1->
+    -->               Encode.object
+    -->                  [ (\"Constructor\", Encode.string \"Err\")
+    -->                  , (\"A1\", Encode.string a1)
+    -->                  ]
+    -->            Ok a1->
+    -->               Encode.object
+    -->                  [ (\"Constructor\", Encode.string \"Ok\")
+    -->                  , (\"A1\", Encode.bool a1)
+    -->                  ]"""
+    -->          |> String.replace "                     " "" -- adjust to formatting
+    -->          |> String.replace "                    " "" -- adjust to formatting
+
+    both Pipeline "type alias ResultExample2 = {result : Result String Bool}"
+    --> """decodeResultExample2 =
+    -->         Decode.map
+    -->            ResultExample2
+    -->               ( Decode.field \"result\" (   Decode.field \"Constructor\" Decode.string |> Decode.andThen decodeResultStringBoolHelp
+    -->         
+    -->         decodeResultStringBoolHelp constructor =
+    -->            case constructor of
+    -->               \"Err\" ->
+    -->                  Decode.map
+    -->                     Err
+    -->                        ( Decode.field \"A1\" Decode.string )
+    -->               \"Ok\" ->
+    -->                  Decode.map
+    -->                     Ok
+    -->                        ( Decode.field \"A1\" Decode.bool )
+    -->               other->
+    -->                  Decode.fail <| \"Unknown constructor for type ResultStringBool: \" ++ other) )
+    -->      
+    -->      encodeResultExample2 a =
+    -->         Encode.object
+    -->            [ (\"result\", encodeResultStringBool a.result)
+    -->            ]"""
+    -->          |> String.replace "                     " "" -- adjust to formatting
+    -->          |> String.replace "                    " "" -- adjust to formatting
+
     both Pipeline "type alias QualifiedExample = SomeModule.SomeType"
 
     --> """decodeQualifiedExample =

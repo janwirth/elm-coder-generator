@@ -211,6 +211,9 @@ dependencies typeDef =
                   TypeList listType ->
                       derive listType
                   TypeMaybe t -> derive t
+                  TypeResult a b ->
+                      [derive a, derive b]
+                      |> List.concat
                   TypeOpaque (_, t) -> List.map derive t
                     |> List.concat
                   TypeRecord types ->

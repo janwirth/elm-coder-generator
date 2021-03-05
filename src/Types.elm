@@ -13,6 +13,7 @@ type Type
     | TypeInt
     | TypeList Type
     | TypeMaybe Type
+    | TypeResult Type Type
     | TypeOpaque ( String, List Type )
     | TypeRecord (List TypeDef)
     | TypeString
@@ -142,6 +143,7 @@ getParameters theType =
         TypeCustom _ parameter -> List.map getParameters parameter |> List.concat
         TypeInt -> []
         TypeMaybe a -> getParameters a
+        TypeResult a b -> [getParameters a, getParameters b] |> List.concat
         TypeRecord fields -> List.map (.theType >> getParameters) fields |> List.concat
         TypeString -> []
         TypeTuple t -> List.map getParameters t |> List.concat

@@ -68,7 +68,7 @@ makeParameters def =
 
 -}
 decoderHelp : Bool -> String -> Type -> ExtraPackage -> String
-decoderHelp topLevel rawName a extra =
+decoderHelp topLevel rawName kind extra =
     let
         recurseOn x y =
             x ++ " " ++ (bracketIfSpaced <| decoderHelp False "" y extra)
@@ -76,7 +76,7 @@ decoderHelp topLevel rawName a extra =
         name =
             replaceColons rawName
     in
-    case a of
+    case kind of
         TypeParameter parameter ->
             "decode" ++ capitalize parameter
         TypeArray b ->
@@ -106,7 +106,7 @@ decoderHelp topLevel rawName a extra =
                     let
                         name_ =
                             replaceColons <| case name of
-                                "" -> Generate.Type.identifier a
+                                "" -> Generate.Type.identifier kind
                                 _ -> name
                     in
                     case c of
@@ -122,7 +122,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (Generate.Type.identifier a) b extra
+                            decoderRecord (Generate.Type.identifier kind) b extra
 
                         _ ->
                             decoderRecord (name ++ "Extended") b extra
@@ -130,7 +130,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.identifier a
+                            "decode" ++ Generate.Type.identifier kind
 
                         _ ->
                             "decode" ++ name ++ "Extended"
@@ -168,7 +168,14 @@ decoderHelp topLevel rawName a extra =
                             call ++ " " ++ renderedParams
                             |> if topLevel then identity else bracketIfSpaced
 
-
+        TypeResult b c ->
+            let
+                t = TypeUnion [("Err",[b]),("Ok",[c])]
+            in
+            decoderHelp (if rawName == "" then True else topLevel) (case rawName of
+                "" -> Generate.Type.identifier kind
+                _ -> rawName) t extra
+                
         TypeInt ->
             "Decode.int"
 
@@ -186,7 +193,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                                "decode" ++ Generate.Type.identifier a
+                                "decode" ++ Generate.Type.identifier kind
 
                         _ ->
                             "decode" ++ name
@@ -196,7 +203,7 @@ decoderHelp topLevel rawName a extra =
                 True ->
                     case name of
                         "" ->
-                            decoderRecord (Generate.Type.identifier a) b extra
+                            decoderRecord (Generate.Type.identifier kind) b extra
 
                         _ ->
                             decoderRecord name b extra
@@ -204,7 +211,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.identifier a
+                            "decode" ++ Generate.Type.identifier kind
 
                         _ ->
                             "decode" ++ name
@@ -220,7 +227,7 @@ decoderHelp topLevel rawName a extra =
                 False ->
                     case name of
                         "" ->
-                            "decode" ++ Generate.Type.identifier a
+                            "decode" ++ Generate.Type.identifier kind
 
                         _ ->
                             "decode" ++ name

@@ -132,6 +132,9 @@ pullImportedHelp thisType homeModule modulePool pulled =
             
         TypeMaybe a ->
             pulled ++ recurseOnHelp a
+
+        TypeResult a b ->
+            pulled ++ recurseOnHelp a ++ recurseOnHelp b
             
         TypeOpaque ( a, list ) ->
             pulled ++ List.concat (List.map recurseOnHelp list)

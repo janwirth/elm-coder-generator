@@ -181,6 +181,9 @@ grabRawType submatches =
     grabRawTypes "type Either a b = Left a | Right b"
     --> [{ def = "Left a | Right b", extensible = True, name = "Either" }]
 
+    grabRawTypes "type MaybeExample = Maybe Int"
+    --> [{ def = "Maybe Int", extensible = False, name = "MaybeExample" }]
+
     grabRawTypes "type alias Uploads = Some.Special.Dict_ Upload"
     --> [{extensible = False, name = "Uploads", def = "Some.Special.Dict_ Upload" }]
 -}
@@ -205,6 +208,8 @@ typeRegex =
 
     import Types exposing (RawType, Type(..), TypeDef)
 
+    typeOf False "Maybe Int" --> TypeMaybe TypeInt
+    typeOf False "Result String Int" --> TypeResult TypeString TypeInt
     typeOf False "List String" --> TypeList TypeString
     typeOf False "MyType | String" --> TypeUnion [("MyType",[]),("String",[])]
     typeOf False "MyType" --> TypeCustom "MyType" []
@@ -282,6 +287,14 @@ typeOf extensible def =
 
                                 "Maybe" ->
                                     TypeMaybe (subType <| dropWord a <| debracket def)
+
+                                "Result" ->
+                                    case deunion (debracket def) of
+                                        ( _, c :: d :: es ) :: fs ->
+                                            TypeResult ( subType c) (subType d )
+
+                                        _ ->
+                                            TypeError "Error parsing def as a Dict"
 
                                 "String" ->
                                     TypeString
