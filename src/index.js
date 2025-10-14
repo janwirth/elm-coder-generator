@@ -87,7 +87,7 @@ async function run () {
     if (isPipedTo) {
         const input = await getPipeInput()
         const output = await processAnnotated(input)
-        console.log(output)
+        console.log(output.replace(/\n$/,''))
     } else if (filePaths.length > 0) {
         console.log(filePaths)
         filePaths.forEach(processFile)
